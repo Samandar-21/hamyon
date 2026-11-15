@@ -229,14 +229,44 @@
       color: var(--text-dark);
     }
 
-    /* Dynamic Monthly Bar Chart */
+    /* Dynamic Monthly Bar Chart - Premium Modern Styling */
+    .monthly-premium-card {
+      background: #FFFFFF;
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 18px;
+      border: 1px solid #F1F5F9;
+    }
+    .monthly-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .monthly-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .monthly-tag {
+      font-size: 11px;
+      font-weight: 700;
+      color: #059669;
+      background: #ECFDF5;
+      padding: 3px 8px;
+      border-radius: 8px;
+    }
     .chart-container {
       display: flex;
       align-items: flex-end;
       justify-content: space-between;
-      height: 120px;
-      padding-top: 10px;
+      height: 140px;
+      padding: 10px 4px 6px;
       margin-top: 6px;
+      background: linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 100%);
+      border-radius: 16px;
+      gap: 6px;
     }
     .chart-col {
       display: flex;
@@ -244,26 +274,39 @@
       align-items: center;
       gap: 6px;
       flex: 1;
+      height: 100%;
+      justify-content: flex-end;
+    }
+    .chart-bar-amount {
+      font-size: 9px;
+      font-weight: 700;
+      color: #64748B;
+      opacity: 0.9;
     }
     .bar-bg {
-      width: 22px;
-      height: 90px;
+      width: 24px;
+      height: 85px;
       background: #E2E8F0;
-      border-radius: 10px;
+      border-radius: 12px;
       display: flex;
       align-items: flex-end;
       overflow: hidden;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
     }
     .bar-fill {
       width: 100%;
-      background: #10B981;
-      border-radius: 10px;
-      transition: height 0.5s ease;
+      background: linear-gradient(180deg, #34D399 0%, #059669 100%);
+      border-radius: 12px;
+      transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .bar-fill.active-month {
+      background: linear-gradient(180deg, #10B981 0%, #047857 100%);
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.4);
     }
     .chart-label {
       font-size: 11px;
-      color: var(--text-muted);
-      font-weight: 600;
+      color: #475569;
+      font-weight: 700;
     }
 
     /* Quick NLP Input Card */
@@ -727,10 +770,13 @@
         </div>
       </div>
 
-      <!-- Monthly Dynamics Chart -->
-      <div class="section-card">
-        <div class="section-header">
-          <div class="section-title">Oylik dinamika</div>
+      <!-- Monthly Dynamics Chart (Premium Card) -->
+      <div class="monthly-premium-card">
+        <div class="monthly-header">
+          <div class="monthly-title-wrap">
+            <div class="section-title">Oylik dinamika</div>
+            <span class="monthly-tag">6 oylik</span>
+          </div>
           <span class="section-link" onclick="switchTab('reports')">Hisobot →</span>
         </div>
         <div class="chart-container" id="monthly-chart">
@@ -1165,29 +1211,46 @@
       const container = document.getElementById('monthly-chart');
       container.innerHTML = '';
       const list = summary.slice(-6);
-      const maxExp = Math.max(...list.map(i => i.expense || 1), 1);
-      
-      const defaultMonths = [
-        { month: 'Yan', expense: 0 },
-        { month: 'Fev', expense: 0 },
-        { month: 'Mar', expense: 0 },
-        { month: 'Apr', expense: 0 },
-        { month: 'May', expense: 0 },
-        { month: 'Iyun', expense: 0 }
-      ];
+      const maxExp = Math.max(...list.map(i => i.expense || 0), 1);
 
-      const renderList = list.length > 0 ? list : defaultMonths;
+      const monthNames = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek'];
+      const now = new Date();
+      const currentMonthNum = now.getMonth();
 
-      renderList.forEach(item => {
-        const pct = maxExp > 1 && item.expense > 0 ? Math.max(8, Math.min(100, Math.round((item.expense / maxExp) * 100))) : 4;
-        const mLabel = item.month ? item.month.split('-')[1] || item.month : '';
+      // Agar data bo'lmasa, oxirgi 6 oyni chiroyli 0 holatda ko'rsatamiz
+      let renderList = [];
+      if (list.length > 0) {
+        renderList = list;
+      } else {
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          renderList.push({
+            month: monthNames[d.getMonth()],
+            expense: 0
+          });
+        }
+      }
+
+      renderList.forEach((item, idx) => {
+        const exp = Number(item.expense) || 0;
+        const pct = maxExp > 1 && exp > 0 ? Math.max(12, Math.min(100, Math.round((exp / maxExp) * 100))) : 6;
+        let mLabel = item.month || '';
+        if (mLabel.includes('-')) {
+          const mIdx = parseInt(mLabel.split('-')[1], 10) - 1;
+          mLabel = monthNames[mIdx] || mLabel;
+        }
+
+        const isCurrent = idx === renderList.length - 1;
+        const expLabel = exp > 0 ? (exp >= 1000000 ? (exp/1000000).toFixed(1) + 'M' : (exp/1000).toFixed(0) + 'k') : '0';
+
         const col = document.createElement('div');
         col.className = 'chart-col';
         col.innerHTML = `
+          <span class="chart-bar-amount" style="${isCurrent ? 'color: #059669; font-weight: 800;' : ''}">${expLabel}</span>
           <div class="bar-bg">
-            <div class="bar-fill" style="height: ${pct}%;"></div>
+            <div class="bar-fill ${isCurrent ? 'active-month' : ''}" style="height: ${pct}%;"></div>
           </div>
-          <span class="chart-label">${mLabel || 'Oy'}</span>
+          <span class="chart-label" style="${isCurrent ? 'color: #059669; font-weight: 800;' : ''}">${mLabel}</span>
         `;
         container.appendChild(col);
       });
