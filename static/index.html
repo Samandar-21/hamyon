@@ -668,11 +668,11 @@
         <div class="bal-amount" id="home-balance">0 so‘m</div>
         <div class="sub-cards-row">
           <div class="sub-card">
-            <div class="sub-badge income">↑ Kirim</div>
+            <div class="sub-badge income" style="color: #10B981;">↓ Kirim</div>
             <div class="sub-val" id="home-income" style="color: #10B981;">0 so‘m</div>
           </div>
           <div class="sub-card">
-            <div class="sub-badge expense">↓ Chiqim</div>
+            <div class="sub-badge expense" style="color: #EF4444;">↑ Chiqim</div>
             <div class="sub-val" id="home-expense" style="color: #EF4444;">0 so‘m</div>
           </div>
         </div>
@@ -698,6 +698,33 @@
       <div class="quick-box">
         <input type="text" id="quick-input" class="quick-input" placeholder="Tezkor: 45000 tushlik..." />
         <button class="quick-btn" onclick="submitQuickEntry()">Qo'shish</button>
+      </div>
+
+      <!-- KUNLIK, HAFTALIK, OYLIK STATISTIKA -->
+      <div class="section-card">
+        <div class="section-header" style="margin-bottom: 10px;">
+          <div class="section-title">Davriy hisobot</div>
+          <div style="display: flex; gap: 4px; background: #E2E8F0; padding: 3px; border-radius: 8px;">
+            <button class="filter-btn active" id="btn-period-day" onclick="switchHomePeriod('day', this)" style="padding: 4px 10px; font-size: 11px;">Kunlik</button>
+            <button class="filter-btn" id="btn-period-week" onclick="switchHomePeriod('week', this)" style="padding: 4px 10px; font-size: 11px;">Haftalik</button>
+            <button class="filter-btn" id="btn-period-month" onclick="switchHomePeriod('month', this)" style="padding: 4px 10px; font-size: 11px;">Oylik</button>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+          <div style="flex: 1; background: #DCFCE7; padding: 10px 12px; border-radius: 12px;">
+            <div style="font-size: 11px; font-weight: 700; color: #16A34A; margin-bottom: 2px;">↓ Kirim (kelgan)</div>
+            <div id="period-income-val" style="font-size: 15px; font-weight: 800; color: #15803D;">0 so‘m</div>
+          </div>
+          <div style="flex: 1; background: #FEE2E2; padding: 10px 12px; border-radius: 12px;">
+            <div style="font-size: 11px; font-weight: 700; color: #DC2626; margin-bottom: 2px;">↑ Chiqim (ketgan)</div>
+            <div id="period-expense-val" style="font-size: 15px; font-weight: 800; color: #B91C1C;">0 so‘m</div>
+          </div>
+        </div>
+
+        <div id="period-categories-breakdown">
+          <!-- Kategoriyalar bo'yicha tahlil -->
+        </div>
       </div>
 
       <!-- Monthly Dynamics Chart -->
@@ -1015,6 +1042,81 @@
     // API Base URL - Render backend server
     const API_BASE_URL = "https://hamyon-ocfv.onrender.com";
 
+    let homeSelectedPeriod = 'day'; // 'day' | 'week' | 'month'
+
+    function switchHomePeriod(p, el) {
+      homeSelectedPeriod = p;
+      document.querySelectorAll('#tab-home .filter-btn').forEach(b => b.classList.remove('active'));
+      if (el) el.classList.add('active');
+      renderPeriodBreakdown();
+    }
+
+    function renderPeriodBreakdown() {
+      const now = new Date();
+      let filtered = [];
+
+      if (homeSelectedPeriod === 'day') {
+        const todayStr = now.toISOString().slice(0, 10);
+        filtered = allTransactions.filter(t => t.date && t.date.slice(0, 10) === todayStr);
+      } else if (homeSelectedPeriod === 'week') {
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(now.getDate() - 7);
+        filtered = allTransactions.filter(t => t.date && new Date(t.date) >= sevenDaysAgo);
+      } else {
+        // month
+        const currentMonth = now.toISOString().slice(0, 7);
+        filtered = allTransactions.filter(t => t.date && t.date.slice(0, 7) === currentMonth);
+      }
+
+      let pIncome = 0;
+      let pExpense = 0;
+      const catMap = {};
+
+      filtered.forEach(t => {
+        const amt = Number(t.amount) || 0;
+        const cat = t.category || 'Boshqa';
+        if (t.type === 'income') {
+          pIncome += amt;
+        } else {
+          pExpense += amt;
+        }
+        if (!catMap[cat]) catMap[cat] = { income: 0, expense: 0 };
+        if (t.type === 'income') catMap[cat].income += amt;
+        else catMap[cat].expense += amt;
+      });
+
+      document.getElementById('period-income-val').innerText = fmt(pIncome);
+      document.getElementById('period-expense-val').innerText = fmt(pExpense);
+
+      const catBox = document.getElementById('period-categories-breakdown');
+      catBox.innerHTML = '';
+
+      const catKeys = Object.keys(catMap);
+      if (catKeys.length === 0) {
+        catBox.innerHTML = '<div style="color: #94A3B8; text-align: center; font-size: 12px; padding: 6px;">Bu davr uchun amallar yo‘q</div>';
+        return;
+      }
+
+      catKeys.forEach(cat => {
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.justifyContent = 'space-between';
+        row.style.alignItems = 'center';
+        row.style.padding = '6px 0';
+        row.style.fontSize = '12px';
+        row.style.borderBottom = '1px dashed #F1F5F9';
+
+        const expPart = catMap[cat].expense > 0 ? `<span style="color: #DC2626; font-weight: 700;">-${fmt(catMap[cat].expense)}</span>` : '';
+        const incPart = catMap[cat].income > 0 ? `<span style="color: #16A34A; font-weight: 700;">+${fmt(catMap[cat].income)}</span>` : '';
+
+        row.innerHTML = `
+          <div style="font-weight: 600; color: #334155;">${getCatIcon(cat)} ${cat}</div>
+          <div style="display: flex; gap: 8px;">${incPart} ${expPart}</div>
+        `;
+        catBox.appendChild(row);
+      });
+    }
+
     // Fetch and Load All Data from API
     async function loadAllData() {
       try {
@@ -1039,6 +1141,7 @@
           allTransactions = await txRes.json();
           renderTransactions();
           renderHomeRecent();
+          renderPeriodBreakdown();
         }
 
         // 3. Reports API
