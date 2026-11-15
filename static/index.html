@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Smart Wallet</title>
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg: #F4F7F6;
+      --card-bg: #FFFFFF;
+      --primary: #064E3B; /* Dark Emerald green */
+      --primary-light: #059669;
+      --accent-green: #10B981;
+      --income: #10B981;
+      --expense: #EF4444;
+      --text-dark: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --shadow-sm: 0 4px 12px rgba(0,0,0,0.04);
+      --shadow-md: 0 10px 25px rgba(0,0,0,0.08);
+      --nav-height: 68px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      overflow-x: hidden;
+    }
+
+    #app-container {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      background-color: var(--bg);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: calc(var(--nav-height) + 16px);
+    }
+
+    /* Screen Views */
+    .screen-tab {
+      display: none;
+      flex-direction: column;
+      width: 100%;
+      padding: 16px;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+    .screen-tab.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Top Greeting Header */
+    .top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .greeting-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .user-heading {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-dark);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .bell-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Main Balance Card */
+    .balance-card {
+      background: linear-gradient(145deg, #064E3B, #022c22);
+      border-radius: 24px;
+      padding: 22px;
+      color: #FFFFFF;
+      box-shadow: 0 16px 32px rgba(6, 78, 59, 0.25);
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .balance-card::before {
+      content: "";
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 140px;
+      height: 140px;
+      background: rgba(16, 185, 129, 0.12);
+      border-radius: 50%;
+    }
+    .bal-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .bal-label {
+      font-size: 13px;
+      color: #A7F3D0;
+      font-weight: 500;
+    }
+    .eye-icon {
+      cursor: pointer;
+      font-size: 18px;
+      opacity: 0.9;
+    }
+    .bal-amount {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 20px;
+    }
+    .sub-cards-row {
+      display: flex;
+      gap: 12px;
+    }
+    .sub-card {
+      flex: 1;
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 12px 14px;
+      color: var(--text-dark);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    }
+    .sub-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .sub-badge.income { color: var(--income); }
+    .sub-badge.expense { color: var(--expense); }
+    .sub-val {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    /* Section Cards & Box */
+    .section-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 18px;
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+    .section-link {
+      font-size: 13px;
+      color: var(--primary-light);
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    /* Quick Shortcuts Grid (Bank, Budget, Categories) */
+    .shortcuts-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .shortcut-card {
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 14px 10px;
+      text-align: center;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.1s;
+    }
+    .shortcut-card:active {
+      transform: scale(0.96);
+    }
+    .shortcut-icon {
+      font-size: 24px;
+      margin-bottom: 6px;
+    }
+    .shortcut-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    /* Dynamic Monthly Bar Chart */
+    .chart-container {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      height: 120px;
+      padding-top: 10px;
+      margin-top: 6px;
+    }
+    .chart-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+    }
+    .bar-bg {
+      width: 22px;
+      height: 90px;
+      background: #E2E8F0;
+      border-radius: 10px;
+      display: flex;
+      align-items: flex-end;
+      overflow: hidden;
+    }
+    .bar-fill {
+      width: 100%;
+      background: #10B981;
+      border-radius: 10px;
+      transition: height 0.5s ease;
+    }
+    .chart-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* Quick NLP Input Card */
+    .quick-box {
+      background: #ECFDF5;
+      border: 1px dashed #059669;
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    .quick-input {
+      flex: 1;
+      border: none;
+      background: #FFFFFF;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 14px;
+      outline: none;
+      border: 1px solid #A7F3D0;
+    }
+    .quick-btn {
+      background: #059669;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 10px;
+      padding: 0 16px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    /* Transaction List Items */
+    .tx-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #F1F5F9;
+    }
+    .tx-item:last-child {
+      border-bottom: none;
+    }
+    .tx-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .tx-icon-wrap {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    .tx-cat-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 2px;
+    }
+    .tx-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .tx-amount {
+      font-size: 14px;
+      font-weight: 700;
+      text-align: right;
+    }
+    .tx-amount.income { color: var(--income); }
+    .tx-amount.expense { color: var(--expense); }
+    .tx-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    /* Segment Buttons (Tranzaksiyalar filter) */
+    .filter-tabs {
+      display: flex;
+      background: #E2E8F0;
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 16px;
+      gap: 4px;
+    }
+    .filter-btn {
+      flex: 1;
+      padding: 8px 0;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .filter-btn.active {
+      background: #FFFFFF;
+      color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Reports Donut Visual */
+    .donut-wrap {
+      position: relative;
+      width: 170px;
+      height: 170px;
+      margin: 10px auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .donut-circle {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: conic-gradient(
+        #EF4444 0% 32%,
+        #3B82F6 32% 50%,
+        #06B6D4 50% 62%,
+        #EC4899 62% 72%,
+        #10B981 72% 100%
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .donut-inner {
+      width: 116px;
+      height: 116px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6px;
+    }
+    .donut-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .donut-amount {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-top: 2px;
+    }
+
+    /* Add Transaction Form */
+    .type-switcher {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .type-btn {
+      flex: 1;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #FFFFFF;
+      font-size: 15px;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+    }
+    .type-btn.active-expense {
+      background: #FEE2E2;
+      color: #DC2626;
+      border-color: #F87171;
+    }
+    .type-btn.active-income {
+      background: #DCFCE7;
+      color: #16A34A;
+      border-color: #4ADE80;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: block;
+    }
+    .form-input, .form-select {
+      width: 100%;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #FFFFFF;
+      font-size: 15px;
+      outline: none;
+      box-shadow: var(--shadow-sm);
+    }
+    .form-input:focus, .form-select:focus {
+      border-color: var(--primary-light);
+    }
+    .primary-btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 16px;
+      border: none;
+      background: #064E3B;
+      color: #FFFFFF;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(6, 78, 59, 0.25);
+      margin-top: 10px;
+    }
+    .primary-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* Budgets Progress Bar */
+    .budget-item {
+      padding: 14px 0;
+      border-bottom: 1px solid #F1F5F9;
+    }
+    .budget-top {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: #E2E8F0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: #10B981;
+      border-radius: 4px;
+    }
+    .progress-bar-fill.warning {
+      background: #EF4444;
+    }
+
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      height: var(--nav-height);
+      background: #FFFFFF;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.04);
+      z-index: 100;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: #94A3B8;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      border: none;
+      background: transparent;
+      flex: 1;
+    }
+    .nav-item.active {
+      color: #064E3B;
+    }
+    .nav-icon {
+      font-size: 20px;
+    }
+    .fab-center {
+      position: relative;
+      top: -14px;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #064E3B;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      box-shadow: 0 8px 18px rgba(6, 78, 59, 0.35);
+      border: 3px solid #FFFFFF;
+      cursor: pointer;
+    }
+    .fab-center:active {
+      transform: scale(0.94);
+    }
+
+    /* Modal Sheet */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal-sheet {
+      width: 100%;
+      max-width: 480px;
+      background: #FFFFFF;
+      border-radius: 24px 24px 0 0;
+      padding: 20px;
+      max-height: 85vh;
+      overflow-y: auto;
+      animation: slideUp 0.25s ease-out;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .close-btn {
+      background: #F1F5F9;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    /* Profile Rows */
+    .profile-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .profile-item:last-child {
+      border-bottom: none;
+    }
+    .profile-item-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .chevron {
+      color: #94A3B8;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app-container">
+
+    <!-- TAB 1: BOSH SAHIFA (HOME) -->
+    <div id="tab-home" class="screen-tab active">
+      <div class="top-header">
+        <div>
+          <div class="greeting-text">Salom,</div>
+          <div class="user-heading">Dilshod! <span>👋</span></div>
+        </div>
+        <div class="bell-btn" onclick="openModal('notifications')">🔔</div>
+      </div>
+
+      <!-- Balance Card -->
+      <div class="balance-card">
+        <div class="bal-top">
+          <span class="bal-label">Joriy balans</span>
+          <span class="eye-icon" onclick="toggleBalance()">👁️</span>
+        </div>
+        <div class="bal-amount" id="home-balance">12 450 000 so‘m</div>
+        <div class="sub-cards-row">
+          <div class="sub-card">
+            <div class="sub-badge income">↑ Kirim</div>
+            <div class="sub-val" id="home-income" style="color: #10B981;">25 300 000</div>
+          </div>
+          <div class="sub-card">
+            <div class="sub-badge expense">↓ Chiqim</div>
+            <div class="sub-val" id="home-expense" style="color: #EF4444;">12 850 000</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shortcuts: Excel, Byudjet, Kategoriyalar -->
+      <div class="shortcuts-grid">
+        <div class="shortcut-card" onclick="openModal('excel')">
+          <div class="shortcut-icon">📊</div>
+          <div class="shortcut-name">Bank aylanmasi</div>
+        </div>
+        <div class="shortcut-card" onclick="openModal('budget')">
+          <div class="shortcut-icon">🎯</div>
+          <div class="shortcut-name">Byudjetlar</div>
+        </div>
+        <div class="shortcut-card" onclick="openModal('categories')">
+          <div class="shortcut-icon">🗂️</div>
+          <div class="shortcut-name">Kategoriyalar</div>
+        </div>
+      </div>
+
+      <!-- Quick AI / NLP Input -->
+      <div class="quick-box">
+        <input type="text" id="quick-input" class="quick-input" placeholder="Tezkor: 45000 tushlik..." />
+        <button class="quick-btn" onclick="submitQuickEntry()">Qo'shish</button>
+      </div>
+
+      <!-- Monthly Dynamics Chart -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">Oylik dinamika</div>
+          <span class="section-link" onclick="switchTab('reports')">Hisobot →</span>
+        </div>
+        <div class="chart-container" id="monthly-chart">
+          <!-- Dynamically filled -->
+        </div>
+      </div>
+
+      <!-- Recent Transactions -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">Oxirgi amallar</div>
+          <span class="section-link" onclick="switchTab('transactions')">Barchasi →</span>
+        </div>
+        <div id="home-recent-list">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: TRANZAKSIYALAR -->
+    <div id="tab-transactions" class="screen-tab">
+      <div class="top-header">
+        <div class="user-heading">Tranzaksiyalar</div>
+        <div class="bell-btn" onclick="loadAllData()">🔄</div>
+      </div>
+
+      <div class="filter-tabs">
+        <button class="filter-btn active" onclick="setTxFilter('all', this)">Barchasi</button>
+        <button class="filter-btn" onclick="setTxFilter('income', this)">Kirim</button>
+        <button class="filter-btn" onclick="setTxFilter('expense', this)">Chiqim</button>
+      </div>
+
+      <div class="section-card" id="tx-full-list">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- TAB 3: QO'SHISH (ADD) -->
+    <div id="tab-add" class="screen-tab">
+      <div class="top-header">
+        <div class="user-heading">Yangi tranzaksiya</div>
+      </div>
+
+      <div class="type-switcher">
+        <div class="type-btn active-expense" id="btn-expense" onclick="setAddType('expense')">Chiqim</div>
+        <div class="type-btn" id="btn-income" onclick="setAddType('income')">Kirim</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Summa (so‘m)</label>
+        <input type="number" id="add-amount" class="form-input" placeholder="Masalan: 250 000" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Kategoriya</label>
+        <select id="add-category" class="form-select">
+          <option value="Oziq-ovqat">🛒 Oziq-ovqat</option>
+          <option value="Transport">🚗 Transport</option>
+          <option value="Kommunal">💧 Kommunal xizmatlar</option>
+          <option value="Sog‘liq">❤️ Sog‘liqni saqlash</option>
+          <option value="Ta’lim">🎓 Ta’lim</option>
+          <option value="Ko‘ngilochar">🎮 Ko‘ngilochar</option>
+          <option value="Ish haqi">💼 Ish haqi</option>
+          <option value="Biznes">📈 Biznes</option>
+          <option value="Boshqa">💬 Boshqa</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Sana</label>
+        <input type="date" id="add-date" class="form-input" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Izoh (ixtiyoriy)</label>
+        <input type="text" id="add-desc" class="form-input" placeholder="Masalan: Market xaridi" />
+      </div>
+
+      <button class="primary-btn" onclick="saveManualTransaction()">Saqlash</button>
+    </div>
+
+    <!-- TAB 4: HISOBOT (REPORTS) -->
+    <div id="tab-reports" class="screen-tab">
+      <div class="top-header">
+        <div class="user-heading">Hisobot</div>
+      </div>
+
+      <div class="filter-tabs">
+        <button class="filter-btn active" onclick="setReportPeriod('Oy', this)">Oy</button>
+        <button class="filter-btn" onclick="setReportPeriod('Chorak', this)">Chorak</button>
+        <button class="filter-btn" onclick="setReportPeriod('Yil', this)">Yil</button>
+      </div>
+
+      <div class="section-card">
+        <div class="donut-wrap">
+          <div class="donut-circle">
+            <div class="donut-inner">
+              <span class="donut-label">Jami chiqim</span>
+              <span class="donut-amount" id="report-total-exp">12 850 000 so‘m</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="report-cats-list">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: PROFIL -->
+    <div id="tab-profile" class="screen-tab">
+      <div class="top-header">
+        <div class="user-heading">Profil</div>
+      </div>
+
+      <div class="section-card" style="display: flex; align-items: center; gap: 14px; margin-bottom: 20px;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: #064E3B; color: #FFF; display: flex; align-items: center; justify-content: center; font-size: 26px;">
+          👤
+        </div>
+        <div>
+          <div style="font-size: 17px; font-weight: 800;" id="user-name-display">Dilshod Karimov</div>
+          <div style="font-size: 13px; color: var(--text-muted);" id="user-phone-display">+998 90 123 45 67</div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="profile-item" onclick="openModal('budget')">
+          <div class="profile-item-left">🎯 Byudjet sozlamalari</div>
+          <span class="chevron">›</span>
+        </div>
+        <div class="profile-item" onclick="openModal('categories')">
+          <div class="profile-item-left">🗂️ Kategoriyalarni boshqarish</div>
+          <span class="chevron">›</span>
+        </div>
+        <div class="profile-item" onclick="openModal('excel')">
+          <div class="profile-item-left">📊 Excel import (Bank)</div>
+          <span class="chevron">›</span>
+        </div>
+        <div class="profile-item" onclick="alert('Smart Wallet v2.0 - Telegram Mini App versiyasi')">
+          <div class="profile-item-left">ℹ️ Dastur haqida</div>
+          <span class="chevron">›</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 1: KATEGORIYALAR -->
+    <div id="modal-categories" class="modal-overlay">
+      <div class="modal-sheet">
+        <div class="modal-header">
+          <div class="modal-title">Kategoriyalar</div>
+          <button class="close-btn" onclick="closeModal('categories')">✕</button>
+        </div>
+        <div id="categories-list-render">
+          <!-- Categories list -->
+        </div>
+        <div style="margin-top: 16px; display: flex; gap: 8px;">
+          <input type="text" id="new-cat-input" class="form-input" placeholder="Yangi kategoriya nomi" />
+          <button class="quick-btn" onclick="addNewCategory()">Qo‘shish</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 2: BYUDJETLAR -->
+    <div id="modal-budget" class="modal-overlay">
+      <div class="modal-sheet">
+        <div class="modal-header">
+          <div class="modal-title">Byudjet nazorati</div>
+          <button class="close-btn" onclick="closeModal('budget')">✕</button>
+        </div>
+        <div id="budget-list-render">
+          <!-- Rendered budget items -->
+        </div>
+        <div style="margin-top: 16px; background: #F8FAFC; padding: 14px; border-radius: 14px;">
+          <div style="font-weight: 700; font-size: 14px; margin-bottom: 8px;">Yangi byudjet limiti:</div>
+          <select id="budget-cat-select" class="form-select" style="margin-bottom: 8px;"></select>
+          <input type="number" id="budget-limit-input" class="form-input" placeholder="Limit summasi (so‘m)" style="margin-bottom: 8px;" />
+          <button class="primary-btn" onclick="saveBudgetLimit()">Saqlash</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 3: EXCEL IMPORT -->
+    <div id="modal-excel" class="modal-overlay">
+      <div class="modal-sheet">
+        <div class="modal-header">
+          <div class="modal-title">Bank hisoboti (Excel)</div>
+          <button class="close-btn" onclick="closeModal('excel')">✕</button>
+        </div>
+        <div style="text-align: center; padding: 20px 0;">
+          <div style="font-size: 50px; margin-bottom: 10px;">📗</div>
+          <div style="font-size: 15px; font-weight: 700; margin-bottom: 6px;">Excel faylni yuklang</div>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+            Bankingizdan olingan .xlsx faylni import qilib, amallarni avtomatik qo‘shing.
+          </p>
+          <input type="file" id="excel-file-input" accept=".xlsx,.xls" style="display: none;" onchange="handleExcelUpload(event)" />
+          <button class="primary-btn" onclick="document.getElementById('excel-file-input').click()">📁 Fayl tanlash</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION -->
+    <div class="bottom-nav">
+      <button class="nav-item active" onclick="switchTab('home', this)">
+        <span class="nav-icon">🏠</span>
+        <span>Bosh sahifa</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('transactions', this)">
+        <span class="nav-icon">🧾</span>
+        <span>Tranzaksiyalar</span>
+      </button>
+      <div class="fab-center" onclick="switchTab('add')">+</div>
+      <button class="nav-item" onclick="switchTab('reports', this)">
+        <span class="nav-icon">📊</span>
+        <span>Hisobot</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('profile', this)">
+        <span class="nav-icon">👤</span>
+        <span>Profil</span>
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    // State
+    let showBalance = true;
+    let activeAddType = 'expense';
+    let currentFilter = 'all';
+    let currentReportPeriod = 'Oy';
+    let allTransactions = [];
+    let categories = [
+      { name: 'Oziq-ovqat', icon: '🛒', color: '#fee2e2' },
+      { name: 'Transport', icon: '🚗', color: '#dbeafe' },
+      { name: 'Kommunal', icon: '💧', color: '#e0f2fe' },
+      { name: 'Sog‘liq', icon: '❤️', color: '#fce7f3' },
+      { name: 'Ta’lim', icon: '🎓', color: '#fef3c7' },
+      { name: 'Ko‘ngilochar', icon: '🎮', color: '#dcfce7' },
+      { name: 'Ish haqi', icon: '💼', color: '#dcfce7' },
+      { name: 'Biznes', icon: '📈', color: '#fef9c3' },
+      { name: 'Boshqa', icon: '💬', color: '#ede9fe' }
+    ];
+
+    // Initialize Telegram WebApp
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      if (tg.setHeaderColor) tg.setHeaderColor('#064E3B');
+      if (tg.setBackgroundColor) tg.setBackgroundColor('#F4F7F6');
+      if (tg.initDataUnsafe?.user) {
+        const u = tg.initDataUnsafe.user;
+        const name = (u.first_name || '') + ' ' + (u.last_name || '');
+        document.querySelector('.user-heading').innerHTML = (u.first_name || 'Foydalanuvchi') + '! <span>👋</span>';
+        document.getElementById('user-name-display').innerText = name.trim() || 'Foydalanuvchi';
+        if (u.username) document.getElementById('user-phone-display').innerText = '@' + u.username;
+      }
+    }
+
+    // Set Default Add Date
+    document.getElementById('add-date').value = new Date().toISOString().split('T')[0];
+
+    // Navigation Switcher
+    function switchTab(tabId, el) {
+      document.querySelectorAll('.screen-tab').forEach(t => t.classList.remove('active'));
+      const target = document.getElementById('tab-' + tabId);
+      if (target) target.classList.add('active');
+
+      document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+      if (el) {
+        el.classList.add('active');
+      } else {
+        const navMap = { home: 0, transactions: 1, reports: 3, profile: 4 };
+        const navItems = document.querySelectorAll('.nav-item');
+        if (navMap[tabId] !== undefined && navItems[navMap[tabId]]) {
+          navItems[navMap[tabId]].classList.add('active');
+        }
+      }
+      window.scrollTo(0, 0);
+    }
+
+    // Modal Control
+    function openModal(id) {
+      const modal = document.getElementById('modal-' + id);
+      if (modal) modal.classList.add('active');
+      if (id === 'budget') renderBudgets();
+      if (id === 'categories') renderCategoriesList();
+    }
+    function closeModal(id) {
+      const modal = document.getElementById('modal-' + id);
+      if (modal) modal.classList.remove('active');
+    }
+
+    // Toggle Balance Eye
+    function toggleBalance() {
+      showBalance = !showBalance;
+      const el = document.getElementById('home-balance');
+      if (showBalance) {
+        el.innerText = window.currentBalanceText || '12 450 000 so‘m';
+      } else {
+        el.innerText = '••••••••';
+      }
+    }
+
+    // Number formatter
+    function fmt(val) {
+      return (Number(val) || 0).toLocaleString('uz-UZ') + " so‘m";
+    }
+
+    // Fetch and Load All Data from API
+    async function loadAllData() {
+      try {
+        // 1. Dashboard API
+        const dashRes = await fetch('/api/dashboard?period=30%20kun');
+        if (dashRes.ok) {
+          const dJson = await dashRes.json();
+          const bal = dJson.all_metrics?.balance || 0;
+          window.currentBalanceText = fmt(bal);
+          if (showBalance) {
+            document.getElementById('home-balance').innerText = window.currentBalanceText;
+          }
+          document.getElementById('home-income').innerText = fmt(dJson.period_metrics?.total_income || 0);
+          document.getElementById('home-expense').innerText = fmt(dJson.period_metrics?.total_expense || 0);
+
+          renderMonthlyChart(dJson.monthly_summary || []);
+        }
+
+        // 2. Transactions API
+        const txRes = await fetch('/api/transactions?limit=100');
+        if (txRes.ok) {
+          allTransactions = await txRes.json();
+          renderTransactions();
+          renderHomeRecent();
+        }
+
+        // 3. Reports API
+        loadReportsData();
+      } catch (err) {
+        console.error('Error fetching data:', err);
+      }
+    }
+
+    function renderMonthlyChart(summary) {
+      const container = document.getElementById('monthly-chart');
+      container.innerHTML = '';
+      const list = summary.slice(-6);
+      const maxExp = Math.max(...list.map(i => i.expense || 1), 1);
+      
+      const defaultMonths = [
+        { month: 'Yan', expense: 40 },
+        { month: 'Fev', expense: 65 },
+        { month: 'Mar', expense: 50 },
+        { month: 'Apr', expense: 80 },
+        { month: 'May', expense: 60 },
+        { month: 'Iyun', expense: 90 }
+      ];
+
+      const renderList = list.length > 0 ? list : defaultMonths;
+
+      renderList.forEach(item => {
+        const pct = Math.max(15, Math.min(100, Math.round(((item.expense || 1) / maxExp) * 100)));
+        const mLabel = item.month ? item.month.split('-')[1] || item.month : '';
+        const col = document.createElement('div');
+        col.className = 'chart-col';
+        col.innerHTML = `
+          <div class="bar-bg">
+            <div class="bar-fill" style="height: ${pct}%;"></div>
+          </div>
+          <span class="chart-label">${mLabel || 'Oy'}</span>
+        `;
+        container.appendChild(col);
+      });
+    }
+
+    function getCatIcon(catName) {
+      const map = {
+        'Oziq-ovqat': '🛒', 'Transport': '🚗', 'Kommunal': '💧', 'Sog‘liq': '❤️',
+        'Ta’lim': '🎓', 'Ko‘ngilochar': '🎮', 'Ish haqi': '💼', 'Biznes': '📈', 'Boshqa': '💬'
+      };
+      return map[catName] || '💬';
+    }
+
+    function renderHomeRecent() {
+      const box = document.getElementById('home-recent-list');
+      box.innerHTML = '';
+      const recents = allTransactions.slice(0, 5);
+      if (recents.length === 0) {
+        box.innerHTML = '<div style="color: #94A3B8; text-align: center; padding: 10px;">Amallar mavjud emas</div>';
+        return;
+      }
+      recents.forEach(tx => {
+        const isInc = tx.type === 'income';
+        const item = document.createElement('div');
+        item.className = 'tx-item';
+        item.innerHTML = `
+          <div class="tx-left">
+            <div class="tx-icon-wrap" style="background: ${isInc ? '#DCFCE7' : '#FEE2E2'};">
+              ${getCatIcon(tx.category)}
+            </div>
+            <div>
+              <div class="tx-cat-name">${tx.category || 'Boshqa'}</div>
+              <div class="tx-desc">${tx.description || tx.date || ''}</div>
+            </div>
+          </div>
+          <div>
+            <div class="tx-amount ${isInc ? 'income' : 'expense'}">${isInc ? '+' : '-'}${fmt(tx.amount)}</div>
+            <div class="tx-time">${tx.date || ''}</div>
+          </div>
+        `;
+        box.appendChild(item);
+      });
+    }
+
+    function renderTransactions() {
+      const box = document.getElementById('tx-full-list');
+      box.innerHTML = '';
+      const filtered = allTransactions.filter(tx => {
+        if (currentFilter === 'income') return tx.type === 'income';
+        if (currentFilter === 'expense') return tx.type === 'expense';
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        box.innerHTML = '<div style="color: #94A3B8; text-align: center; padding: 20px;">Tranzaksiyalar topilmadi</div>';
+        return;
+      }
+
+      filtered.forEach(tx => {
+        const isInc = tx.type === 'income';
+        const item = document.createElement('div');
+        item.className = 'tx-item';
+        item.innerHTML = `
+          <div class="tx-left">
+            <div class="tx-icon-wrap" style="background: ${isInc ? '#DCFCE7' : '#FEE2E2'};">
+              ${getCatIcon(tx.category)}
+            </div>
+            <div>
+              <div class="tx-cat-name">${tx.category || 'Boshqa'}</div>
+              <div class="tx-desc">${tx.description || tx.source || ''}</div>
+            </div>
+          </div>
+          <div>
+            <div class="tx-amount ${isInc ? 'income' : 'expense'}">${isInc ? '+' : '-'}${fmt(tx.amount)}</div>
+            <div class="tx-time">${tx.date || ''}</div>
+          </div>
+        `;
+        box.appendChild(item);
+      });
+    }
+
+    function setTxFilter(filter, el) {
+      currentFilter = filter;
+      document.querySelectorAll('#tab-transactions .filter-btn').forEach(b => b.classList.remove('active'));
+      if (el) el.classList.add('active');
+      renderTransactions();
+    }
+
+    // Add Transaction
+    function setAddType(type) {
+      activeAddType = type;
+      const bExp = document.getElementById('btn-expense');
+      const bInc = document.getElementById('btn-income');
+      if (type === 'expense') {
+        bExp.className = 'type-btn active-expense';
+        bInc.className = 'type-btn';
+      } else {
+        bExp.className = 'type-btn';
+        bInc.className = 'type-btn active-income';
+      }
+    }
+
+    async function saveManualTransaction() {
+      const amount = parseFloat(document.getElementById('add-amount').value);
+      const category = document.getElementById('add-category').value;
+      const tx_date = document.getElementById('add-date').value;
+      const description = document.getElementById('add-desc').value;
+
+      if (!amount || amount <= 0) {
+        alert('Summani to‘g‘ri kiriting!');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/transactions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount,
+            type: activeAddType,
+            category,
+            tx_date,
+            description
+          })
+        });
+
+        if (res.ok) {
+          alert('Muvaffaqiyatli saqlandi! ✅');
+          document.getElementById('add-amount').value = '';
+          document.getElementById('add-desc').value = '';
+          await loadAllData();
+          switchTab('home');
+        } else {
+          alert('Xatolik yuz berdi!');
+        }
+      } catch (err) {
+        alert('Server bilan ulanishda xatolik!');
+      }
+    }
+
+    async function submitQuickEntry() {
+      const text = document.getElementById('quick-input').value.trim();
+      if (!text) return;
+      try {
+        const res = await fetch('/api/quick-entry', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+        if (res.ok) {
+          document.getElementById('quick-input').value = '';
+          alert('Qo‘shildi! ✅');
+          await loadAllData();
+        } else {
+          alert('Xabarni aniqlab bo‘lmadi');
+        }
+      } catch (e) {
+        alert('Ulanish xatosi');
+      }
+    }
+
+    // Reports Tab
+    async function loadReportsData() {
+      try {
+        const res = await fetch(`/api/reports?period=${encodeURIComponent(currentReportPeriod)}`);
+        if (res.ok) {
+          const data = await res.json();
+          const total = data.metrics?.total_expense || 0;
+          document.getElementById('report-total-exp').innerText = fmt(total);
+
+          const list = document.getElementById('report-cats-list');
+          list.innerHTML = '';
+          (data.category_expenses || []).forEach(c => {
+            const pct = total > 0 ? Math.round((c.expense / total) * 100) : 0;
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.justifyContent = 'space-between';
+            row.style.padding = '10px 0';
+            row.style.borderBottom = '1px solid #F1F5F9';
+            row.innerHTML = `
+              <div style="font-weight: 600; font-size: 14px;">${c.category} <span style="color: #64748B; font-size: 12px;">(${pct}%)</span></div>
+              <div style="font-weight: 700; color: #EF4444;">${fmt(c.expense)}</div>
+            `;
+            list.appendChild(row);
+          });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function setReportPeriod(period, el) {
+      currentReportPeriod = period;
+      document.querySelectorAll('#tab-reports .filter-btn').forEach(b => b.classList.remove('active'));
+      if (el) el.classList.add('active');
+      loadReportsData();
+    }
+
+    // Budgets Modal Logic
+    async function renderBudgets() {
+      const box = document.getElementById('budget-list-render');
+      const select = document.getElementById('budget-cat-select');
+      select.innerHTML = '';
+      categories.forEach(c => {
+        select.innerHTML += `<option value="${c.name}">${c.icon} ${c.name}</option>`;
+      });
+
+      try {
+        const res = await fetch('/api/budgets');
+        if (res.ok) {
+          const data = await res.json();
+          box.innerHTML = '';
+          (data.budgets || []).forEach(b => {
+            const spent = b.spent || 0;
+            const limit = b.limit_amount || 1;
+            const pct = Math.min(100, Math.round((spent / limit) * 100));
+            const isWarn = pct >= 90;
+            box.innerHTML += `
+              <div class="budget-item">
+                <div class="budget-top">
+                  <span>${b.category}</span>
+                  <span style="color: ${isWarn ? '#EF4444' : '#10B981'};">${fmt(spent)} / ${fmt(limit)} (${pct}%)</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill ${isWarn ? 'warning' : ''}" style="width: ${pct}%;"></div>
+                </div>
+              </div>
+            `;
+          });
+        }
+      } catch (e) {
+        box.innerHTML = 'Yuklashda xatolik';
+      }
+    }
+
+    async function saveBudgetLimit() {
+      const category = document.getElementById('budget-cat-select').value;
+      const limit_amount = parseFloat(document.getElementById('budget-limit-input').value);
+      if (!limit_amount || limit_amount <= 0) return alert('Summani kiriting');
+
+      const res = await fetch('/api/budgets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category, limit_amount })
+      });
+      if (res.ok) {
+        alert('Byudjet yangilandi!');
+        renderBudgets();
+      }
+    }
+
+    // Categories Modal
+    function renderCategoriesList() {
+      const box = document.getElementById('categories-list-render');
+      box.innerHTML = '';
+      categories.forEach(c => {
+        box.innerHTML += `
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #F1F5F9;">
+            <div style="display: flex; align-items: center; gap: 10px; font-weight: 600;">
+              <span>${c.icon}</span>
+              <span>${c.name}</span>
+            </div>
+            <span style="color: #94A3B8;">›</span>
+          </div>
+        `;
+      });
+    }
+
+    function addNewCategory() {
+      const val = document.getElementById('new-cat-input').value.trim();
+      if (!val) return;
+      categories.push({ name: val, icon: '📁', color: '#E2E8F0' });
+      document.getElementById('new-cat-input').value = '';
+      renderCategoriesList();
+      alert('Kategoriya qo‘shildi!');
+    }
+
+    // Excel Upload Handler
+    async function handleExcelUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await fetch('/api/import-excel', {
+          method: 'POST',
+          body: formData
+        });
+        const resJson = await res.json();
+        if (res.ok) {
+          alert(`Muvaffaqiyatli import qilindi: ${resJson.count || 0} ta operatsiya.`);
+          closeModal('excel');
+          loadAllData();
+        } else {
+          alert('Fayl importida xatolik: ' + (resJson.detail || ''));
+        }
+      } catch (err) {
+        alert('Server bilan aloqa uzildi');
+      }
+    }
+
+    // Init Data Load
+    loadAllData();
+  </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "short_name": "Wallet",
+  "name": "Smart Wallet — Aqlli Hamyon",
+  "icons": [
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#087c6d",
+  "theme_color": "#087c6d",
+  "display": "standalone",
+  "orientation": "portrait"
+}
