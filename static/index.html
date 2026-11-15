@@ -1012,11 +1012,14 @@
       return (Number(val) || 0).toLocaleString('uz-UZ') + " so‘m";
     }
 
+    // API Base URL - Render backend server
+    const API_BASE_URL = "https://hamyon-ocfv.onrender.com";
+
     // Fetch and Load All Data from API
     async function loadAllData() {
       try {
         // 1. Dashboard API
-        const dashRes = await fetch('/api/dashboard?period=30%20kun');
+        const dashRes = await fetch(`${API_BASE_URL}/api/dashboard?period=30%20kun`);
         if (dashRes.ok) {
           const dJson = await dashRes.json();
           const bal = dJson.all_metrics?.balance || 0;
@@ -1031,7 +1034,7 @@
         }
 
         // 2. Transactions API
-        const txRes = await fetch('/api/transactions?limit=100');
+        const txRes = await fetch(`${API_BASE_URL}/api/transactions?limit=100`);
         if (txRes.ok) {
           allTransactions = await txRes.json();
           renderTransactions();
@@ -1186,7 +1189,7 @@
       }
 
       try {
-        const res = await fetch('/api/transactions', {
+        const res = await fetch(`${API_BASE_URL}/api/transactions`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1216,7 +1219,7 @@
       const text = document.getElementById('quick-input').value.trim();
       if (!text) return;
       try {
-        const res = await fetch('/api/quick-entry', {
+        const res = await fetch(`${API_BASE_URL}/api/quick-entry`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text })
@@ -1236,7 +1239,7 @@
     // Reports Tab
     async function loadReportsData() {
       try {
-        const res = await fetch(`/api/reports?period=${encodeURIComponent(currentReportPeriod)}`);
+        const res = await fetch(`${API_BASE_URL}/api/reports?period=${encodeURIComponent(currentReportPeriod)}`);
         if (res.ok) {
           const data = await res.json();
           const total = data.metrics?.total_expense || 0;
@@ -1280,7 +1283,7 @@
       });
 
       try {
-        const res = await fetch('/api/budgets');
+        const res = await fetch(`${API_BASE_URL}/api/budgets`);
         if (res.ok) {
           const data = await res.json();
           box.innerHTML = '';
@@ -1312,7 +1315,7 @@
       const limit_amount = parseFloat(document.getElementById('budget-limit-input').value);
       if (!limit_amount || limit_amount <= 0) return alert('Summani kiriting');
 
-      const res = await fetch('/api/budgets', {
+      const res = await fetch(`${API_BASE_URL}/api/budgets`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ category, limit_amount })
@@ -1357,7 +1360,7 @@
       formData.append('file', file);
 
       try {
-        const res = await fetch('/api/import-excel', {
+        const res = await fetch(`${API_BASE_URL}/api/import-excel`, {
           method: 'POST',
           body: formData
         });
