@@ -1401,7 +1401,7 @@
     // Fetch and Load All Data from API
     async function loadAllData() {
       try {
-        // 1. Dashboard API
+        // 1. Dashboard API (Umumiy balans, oylik kirim/chiqim, oylik grafik)
         const dashRes = await fetch(`${API_BASE_URL}/api/dashboard?period=30%20kun`);
         if (dashRes.ok) {
           const dJson = await dashRes.json();
@@ -1416,7 +1416,7 @@
           renderMonthlyChart(dJson.monthly_summary || []);
         }
 
-        // 2. Transactions API
+        // 2. Transactions API (Tranzaksiyalar ro'yxati, davriy hisobot, oxirgi amallar)
         const txRes = await fetch(`${API_BASE_URL}/api/transactions?limit=100`);
         if (txRes.ok) {
           allTransactions = await txRes.json();
@@ -1426,8 +1426,14 @@
           renderTodayBalanceCard();
         }
 
-        // 3. Reports API
-        loadReportsData();
+        // 3. Reports API (Hisobot bo'limi tahlili va doiraviy diagramma)
+        await loadReportsData();
+
+        // 4. Budgets (Byudjetlar xarajat foizlari)
+        const budgetModal = document.getElementById('modal-budget');
+        if (budgetModal && budgetModal.classList.contains('active')) {
+          renderBudgets();
+        }
       } catch (err) {
         console.error('Error fetching data:', err);
       }
@@ -1790,10 +1796,10 @@
       }
     }
 
-    // Init Data Load va Real-Time Avto Yangilanish (har 2 soniyada barcha qismlarni yangilash)
+    // Init Data Load va Real-Time Avto Yangilanish (har 1.5 soniyada barcha qismlarni yangilash)
     checkAuthSession();
     loadAllData();
-    setInterval(loadAllData, 2000);
+    setInterval(loadAllData, 1500);
 
     // Telegram ilovasi ekranga qaytganida yoki sahifaga fokus bo'lganda darhol yangilash
     document.addEventListener("visibilitychange", () => {
