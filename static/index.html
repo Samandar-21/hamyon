@@ -1280,27 +1280,32 @@
 
     function renderPeriodBreakdown() {
       const now = new Date();
+      // Lokal yil-oy-kun (masalan 2026-11-17)
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const todayStr = `${year}-${month}-${day}`;
+      const currentMonth = `${year}-${month}`;
+
       let filtered = [];
 
       if (homeSelectedPeriod === 'day') {
-        const todayStr = now.toISOString().slice(0, 10);
         filtered = allTransactions.filter(t => {
-          const d = t.tx_date || t.date || '';
-          return d.slice(0, 10) === todayStr;
+          const d = (t.tx_date || t.date || '').slice(0, 10);
+          return d === todayStr;
         });
       } else if (homeSelectedPeriod === 'week') {
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(now.getDate() - 7);
+        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const sevenDaysStr = sevenDaysAgo.toISOString().slice(0, 10);
         filtered = allTransactions.filter(t => {
-          const d = t.tx_date || t.date || '';
-          return d && new Date(d) >= sevenDaysAgo;
+          const d = (t.tx_date || t.date || '').slice(0, 10);
+          return d && d >= sevenDaysStr;
         });
       } else {
         // month
-        const currentMonth = now.toISOString().slice(0, 7);
         filtered = allTransactions.filter(t => {
-          const d = t.tx_date || t.date || '';
-          return d.slice(0, 7) === currentMonth;
+          const d = (t.tx_date || t.date || '').slice(0, 7);
+          return d === currentMonth;
         });
       }
 

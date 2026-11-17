@@ -445,6 +445,7 @@ async def quick_entry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     # 1. Avval Render Backend API ga yuboramiz (Mini App shu serverdan o'qiydi)
     api_url = os.environ.get("RENDER_API_URL", "https://hamyon-ocfv.onrender.com").rstrip("/")
     api_success = False
+    remote_tx_id = None
     try:
         import urllib.request
         import json
@@ -464,6 +465,8 @@ async def quick_entry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         with urllib.request.urlopen(req, timeout=5) as resp:
             if resp.status == 200:
                 api_success = True
+                res_body = json.loads(resp.read().decode("utf-8"))
+                remote_tx_id = res_body.get("id")
     except Exception as e:
         print(f"Render API ga yuborishda xatolik: {e}")
 
@@ -482,6 +485,7 @@ async def quick_entry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     finally:
         conn.close()
 
+    effective_tx_id = remote_tx_id or tx_id
     if not tx_id and not api_success:
         await update.effective_message.reply_text("⚠️ Bu operatsiya avval kiritilgan bo‘lishi mumkin (takroriy).")
         return
@@ -496,8 +500,8 @@ async def quick_entry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     )
     keyboard = [
         [
-            InlineKeyboardButton("✏️ Kategoriya", callback_data=f"editcat:{tx_id}:{tx_type}"),
-            InlineKeyboardButton("❌ Bekor qilish", callback_data=f"undo:{tx_id}"),
+            InlineKeyboardButton("✏️ Kategoriya", callback_data=f"editcat:{effective_tx_id}:{tx_type}"),
+            InlineKeyboardButton("❌ Bekor qilish", callback_data=f"undo:{effective_tx_id}"),
         ]
     ]
     await update.effective_message.reply_text(
@@ -514,11 +518,23 @@ async def undo_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         return
     await query.answer()
     tx_id = int(query.data.split(":", 1)[1])
+
+    # 1. Lokal bazadan o'chirish
     conn = db()
     try:
         delete_transaction(conn, tx_id)
     finally:
         conn.close()
+
+    # 2. Render backend bazasidan ham o'chirish (Mini App sinxron bo'lishi uchun)
+    try:
+        import urllib.request
+        api_url = os.environ.get("RENDER_API_URL", "https://hamyon-ocfv.onrender.com").rstrip("/")
+        req = urllib.request.Request(f"{api_url}/api/transactions/{tx_id}", method="DELETE")
+        urllib.request.urlopen(req, timeout=5)
+    except Exception as e:
+        print(f"Render delete tx warning: {e}")
+
     await query.edit_message_text("❌ Operatsiya bekor qilindi va bazadan o‘chirildi.")
 
 
