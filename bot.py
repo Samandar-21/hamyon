@@ -33,8 +33,12 @@ EXPENSE_CATEGORIES = [
 INCOME_CATEGORIES = ["Ish haqi", "Biznes", "Sovg‘a", "Qo‘shimcha daromad", "Boshqa"]
 
 
+DEFAULT_BOT_TOKEN = "9288305255:AAHilxcAa-YJC0bMRobL6e0sL24vybMXPbA"
+DEFAULT_USER_ID = "5377564628"
+
+
 def _is_allowed(update: Update) -> bool:
-    allowed_user_id = os.environ.get("TELEGRAM_ALLOWED_USER_ID", "").strip()
+    allowed_user_id = os.environ.get("TELEGRAM_ALLOWED_USER_ID", "").strip() or DEFAULT_USER_ID
     user = update.effective_user
     return bool(allowed_user_id and user and str(user.id) == allowed_user_id)
 
