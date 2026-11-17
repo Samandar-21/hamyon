@@ -88,14 +88,17 @@ def _start_keyboard():
 
 
 async def setup_webapp_menu(app: Application) -> None:
-    url = _webapp_url()
-    if url:
-        await app.bot.set_chat_menu_button(
-            menu_button=MenuButtonWebApp(
-                text="Smart Wallet",
-                web_app=WebAppInfo(url=url),
+    try:
+        url = _webapp_url()
+        if url:
+            await app.bot.set_chat_menu_button(
+                menu_button=MenuButtonWebApp(
+                    text="Smart Wallet",
+                    web_app=WebAppInfo(url=url),
+                )
             )
-        )
+    except Exception as e:
+        print(f"Menu button o'rnatishda ogohlantirish (e'tiborsiz qoldirsa bo'ladi): {e}")
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -465,6 +468,7 @@ def main() -> None:
             ],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
+        per_message=True,
     )
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("app", open_app))
