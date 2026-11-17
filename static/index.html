@@ -51,6 +51,137 @@
       padding-bottom: calc(var(--nav-height) + 16px);
     }
 
+    /* Onboarding & Auth Fullscreen Views */
+    .auth-fullscreen {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #064E3B;
+      color: #FFFFFF;
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 40px 24px 30px;
+      overflow-y: auto;
+    }
+    .auth-fullscreen.hidden {
+      display: none;
+    }
+    .onboarding-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      margin-top: auto;
+      margin-bottom: auto;
+    }
+    .onboarding-logo-wrap {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      border-radius: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 52px;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.25);
+      margin-bottom: 24px;
+    }
+    .onboarding-title {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+    .onboarding-sub {
+      font-size: 15px;
+      color: #A7F3D0;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+    .auth-card {
+      background: #FFFFFF;
+      color: var(--text-dark);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    .auth-tabs {
+      display: flex;
+      background: #F1F5F9;
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 20px;
+    }
+    .auth-tab-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .auth-tab-btn.active {
+      background: #FFFFFF;
+      color: #064E3B;
+      box-shadow: var(--shadow-sm);
+    }
+    .auth-input-group {
+      margin-bottom: 14px;
+    }
+    .auth-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .auth-input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      font-size: 15px;
+      outline: none;
+      background: #F8FAFC;
+    }
+    .auth-input:focus {
+      border-color: #059669;
+      background: #FFFFFF;
+    }
+    .auth-btn-primary {
+      width: 100%;
+      padding: 16px;
+      border-radius: 16px;
+      border: none;
+      background: #064E3B;
+      color: #FFFFFF;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(6, 78, 59, 0.35);
+      margin-top: 10px;
+    }
+    .auth-btn-white {
+      width: 100%;
+      padding: 16px;
+      border-radius: 16px;
+      border: none;
+      background: #FFFFFF;
+      color: #064E3B;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
     /* Screen Views */
     .screen-tab {
       display: none;
@@ -690,6 +821,79 @@
 </head>
 <body>
 
+  <!-- ONBOARDING EKRANI (1-EKRAN) -->
+  <div id="view-onboarding" class="auth-fullscreen">
+    <div></div>
+    <div class="onboarding-center">
+      <div class="onboarding-logo-wrap">👛</div>
+      <div class="onboarding-title">Smart Wallet</div>
+      <div style="font-size: 18px; font-weight: 700; color: #6EE7B7; margin-bottom: 8px;">Hamyon</div>
+      <p class="onboarding-sub">Shaxsiy moliyangizni oson va xavfsiz boshqaring</p>
+    </div>
+    <div>
+      <button class="auth-btn-white" onclick="showAuthView('register')">Boshlash →</button>
+      <div style="text-align: center; margin-top: 14px; font-size: 13px; color: #A7F3D0;">
+        Allaqachon hisobingiz bormi? <span style="text-decoration: underline; font-weight: 700; cursor: pointer; color: #FFFFFF;" onclick="showAuthView('login')">Kirish</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- KIRISH VA RO'YXATDAN O'TISH EKRANI (2-EKRAN) -->
+  <div id="view-auth" class="auth-fullscreen hidden" style="background: #F4F7F6;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <button onclick="backToOnboarding()" style="background: transparent; border: none; font-size: 20px; color: var(--text-dark); cursor: pointer;">← Orqaga</button>
+      <div style="font-size: 16px; font-weight: 800; color: #064E3B;">Smart Wallet</div>
+      <div style="width: 24px;"></div>
+    </div>
+
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="tab-btn-login" onclick="switchAuthTab('login')">Kirish</button>
+        <button class="auth-tab-btn" id="tab-btn-register" onclick="switchAuthTab('register')">Ro‘yxatdan o‘tish</button>
+      </div>
+
+      <!-- Ism kiritish (faqat ro'yxatdan o'tishda) -->
+      <div class="auth-input-group" id="group-name" style="display: none;">
+        <label class="auth-label">Ismingiz</label>
+        <input type="text" id="auth-name" class="auth-input" placeholder="Ismingizni kiriting" />
+      </div>
+
+      <!-- Telefon raqam -->
+      <div class="auth-input-group">
+        <label class="auth-label">Telefon raqam</label>
+        <input type="tel" id="auth-phone" class="auth-input" placeholder="+998 90 123 45 67" />
+      </div>
+
+      <!-- PIN-kod / Parol -->
+      <div class="auth-input-group">
+        <label class="auth-label">Parol (yoki 4 xonali PIN)</label>
+        <div style="position: relative;">
+          <input type="password" id="auth-pass" class="auth-input" placeholder="Parolni kiriting" />
+          <span onclick="toggleAuthPassVisibility()" style="position: absolute; right: 14px; top: 14px; cursor: pointer; font-size: 18px;">👁️</span>
+        </div>
+      </div>
+
+      <!-- Meni eslab qol -->
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; font-size: 13px;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #475569;">
+          <input type="checkbox" id="auth-remember" checked style="accent-color: #059669; width: 16px; height: 16px;" />
+          Meni eslab qol
+        </label>
+      </div>
+
+      <button class="auth-btn-primary" id="auth-submit-btn" onclick="handleAuthSubmit()">Kirish</button>
+
+      <!-- Telegram orqali bitta bosishda kirish -->
+      <div style="margin-top: 16px; text-align: center;">
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">yoki</div>
+        <button onclick="quickTelegramLogin()" style="width: 100%; padding: 12px; border-radius: 14px; border: 1px solid #CBD5E1; background: #FFFFFF; font-weight: 700; font-size: 14px; color: #0284C7; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;">
+          ✈️ Telegram orqali tezkor kirish
+        </button>
+      </div>
+    </div>
+    <div></div>
+  </div>
+
   <div id="app-container">
 
     <!-- TAB 1: BOSH SAHIFA (HOME) -->
@@ -905,6 +1109,10 @@
           <div class="profile-item-left">ℹ️ Dastur haqida</div>
           <span class="chevron">›</span>
         </div>
+        <div class="profile-item" onclick="logoutUser()" style="color: #EF4444;">
+          <div class="profile-item-left">🚪 Chiqish (Hisobni almashtirish)</div>
+          <span class="chevron">›</span>
+        </div>
       </div>
     </div>
 
@@ -988,11 +1196,145 @@
 
   <script>
     // State
+    let currentUser = null;
+    let authMode = 'login'; // 'login' | 'register'
     let showBalance = true;
     let activeAddType = 'expense';
     let currentFilter = 'all';
     let currentReportPeriod = 'Oy';
     let allTransactions = [];
+
+    // Check Local Login Session
+    function checkAuthSession() {
+      const saved = localStorage.getItem("smart_wallet_user");
+      if (saved) {
+        try {
+          currentUser = JSON.parse(saved);
+          applyUserData(currentUser);
+          document.getElementById('view-onboarding').classList.add('hidden');
+          document.getElementById('view-auth').classList.add('hidden');
+          return;
+        } catch (e) {}
+      }
+      // Agar avval kirmagan bo'lsa Onboarding ko'rinadi
+      document.getElementById('view-onboarding').classList.remove('hidden');
+    }
+
+    function showAuthView(mode) {
+      document.getElementById('view-onboarding').classList.add('hidden');
+      document.getElementById('view-auth').classList.remove('hidden');
+      switchAuthTab(mode);
+    }
+
+    function backToOnboarding() {
+      document.getElementById('view-auth').classList.add('hidden');
+      document.getElementById('view-onboarding').classList.remove('hidden');
+    }
+
+    function switchAuthTab(mode) {
+      authMode = mode;
+      const bLog = document.getElementById('tab-btn-login');
+      const bReg = document.getElementById('tab-btn-register');
+      const gName = document.getElementById('group-name');
+      const sBtn = document.getElementById('auth-submit-btn');
+
+      if (mode === 'register') {
+        bReg.classList.add('active');
+        bLog.classList.remove('active');
+        gName.style.display = 'block';
+        sBtn.innerText = 'Ro‘yxatdan o‘tish';
+      } else {
+        bLog.classList.add('active');
+        bReg.classList.remove('active');
+        gName.style.display = 'none';
+        sBtn.innerText = 'Kirish';
+      }
+    }
+
+    function toggleAuthPassVisibility() {
+      const p = document.getElementById('auth-pass');
+      p.type = p.type === 'password' ? 'text' : 'password';
+    }
+
+    function handleAuthSubmit() {
+      const phone = document.getElementById('auth-phone').value.trim();
+      const pass = document.getElementById('auth-pass').value.trim();
+      const name = document.getElementById('auth-name').value.trim();
+      const remember = document.getElementById('auth-remember').checked;
+
+      if (!phone) {
+        alert('Telefon raqamingizni kiriting');
+        return;
+      }
+      if (!pass || pass.length < 3) {
+        alert('Parol kamida 4 xonali bo‘lishi kerak');
+        return;
+      }
+      if (authMode === 'register' && !name) {
+        alert('Iltimos, ismingizni kiriting');
+        return;
+      }
+
+      const uData = {
+        name: name || 'Foydalanuvchi',
+        phone: phone,
+        loggedIn: true
+      };
+
+      if (remember) {
+        localStorage.setItem("smart_wallet_user", JSON.stringify(uData));
+      }
+      currentUser = uData;
+      applyUserData(currentUser);
+
+      document.getElementById('view-auth').classList.add('hidden');
+      document.getElementById('view-onboarding').classList.add('hidden');
+      alert(authMode === 'register' ? 'Muvaffaqiyatli ro‘yxatdan o‘tdingiz! 🎉' : 'Xush kelibsiz! ✅');
+      loadAllData();
+    }
+
+    function quickTelegramLogin() {
+      const tg = window.Telegram?.WebApp;
+      const u = tg?.initDataUnsafe?.user;
+      const uName = u ? (u.first_name || u.username || 'Foydalanuvchi') : 'Telegram Foydalanuvchi';
+      const uData = {
+        name: uName,
+        phone: u?.username ? '@' + u.username : '+998 90 123 45 67',
+        loggedIn: true
+      };
+      localStorage.setItem("smart_wallet_user", JSON.stringify(uData));
+      currentUser = uData;
+      applyUserData(currentUser);
+      document.getElementById('view-auth').classList.add('hidden');
+      document.getElementById('view-onboarding').classList.add('hidden');
+      alert(`Salom, ${uName}! Bosh sahifaga xush kelibsiz! ✈️`);
+      loadAllData();
+    }
+
+    function applyUserData(user) {
+      if (!user) return;
+      const headingEl = document.querySelector('.user-heading');
+      if (headingEl) {
+        headingEl.innerHTML = `${user.name}! <span>👋</span>`;
+      }
+      const nameDispEl = document.getElementById('user-name-display');
+      if (nameDispEl) {
+        nameDispEl.innerText = user.name;
+      }
+      const phoneDispEl = document.getElementById('user-phone-display');
+      if (phoneDispEl) {
+        phoneDispEl.innerText = user.phone || '';
+      }
+    }
+
+    function logoutUser() {
+      if (confirm('Rostdan ham hisobdan chiqmoqchimisiz?')) {
+        localStorage.removeItem("smart_wallet_user");
+        currentUser = null;
+        document.getElementById('view-auth').classList.add('hidden');
+        document.getElementById('view-onboarding').classList.remove('hidden');
+      }
+    }
     let categories = [
       { name: 'Oziq-ovqat', icon: '🛒', color: '#fee2e2' },
       { name: 'Transport', icon: '🚗', color: '#dbeafe' },
@@ -1608,6 +1950,7 @@
     }
 
     // Init Data Load va Real-Time Avto Yangilanish (har 2 soniyada barcha qismlarni yangilash)
+    checkAuthSession();
     loadAllData();
     setInterval(loadAllData, 2000);
 
