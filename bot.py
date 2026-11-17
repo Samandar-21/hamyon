@@ -336,6 +336,32 @@ async def quick_entry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     category = parsed["category"]
     description = parsed["description"]
 
+    # 1. Avval Render Backend API ga yuboramiz (Mini App shu serverdan o'qiydi)
+    api_url = os.environ.get("RENDER_API_URL", "https://hamyon-ocfv.onrender.com").rstrip("/")
+    api_success = False
+    try:
+        import urllib.request
+        import json
+        req_data = json.dumps({
+            "amount": float(amount),
+            "type": tx_type,
+            "category": category,
+            "description": description,
+            "tx_date": date.today().isoformat(),
+            "source": "Telegram Bot"
+        }).encode("utf-8")
+        req = urllib.request.Request(
+            f"{api_url}/api/transactions",
+            data=req_data,
+            headers={"Content-Type": "application/json"}
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            if resp.status == 200:
+                api_success = True
+    except Exception as e:
+        print(f"Render API ga yuborishda xatolik: {e}")
+
+    # 2. Shuningdek lokal hamyon.db ga ham nusxasini saqlab qo'yamiz
     conn = db()
     try:
         tx_id = add_transaction(
@@ -350,7 +376,7 @@ async def quick_entry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     finally:
         conn.close()
 
-    if not tx_id:
+    if not tx_id and not api_success:
         await update.effective_message.reply_text("⚠️ Bu operatsiya avval kiritilgan bo‘lishi mumkin (takroriy).")
         return
 
