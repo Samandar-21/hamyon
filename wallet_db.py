@@ -6,7 +6,7 @@ import pandas as pd
 from wallet_utils import fingerprint
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(APP_DIR, "smart_wallet.db")
+DB_PATH = os.path.join(APP_DIR, "hamyon.db")
 
 
 def db():
