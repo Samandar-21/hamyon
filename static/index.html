@@ -770,17 +770,44 @@
         </div>
       </div>
 
-      <!-- Monthly Dynamics Chart (Premium Card) -->
-      <div class="monthly-premium-card">
-        <div class="monthly-header">
-          <div class="monthly-title-wrap">
-            <div class="section-title">Oylik dinamika</div>
-            <span class="monthly-tag">6 oylik</span>
+      <!-- Kunlik Balans va Kirim-Chiqim Card (Oylik dinamika o'rniga) -->
+      <div class="daily-balance-card" style="background: #FFFFFF; border-radius: 20px; padding: 18px; box-shadow: var(--shadow-sm); margin-bottom: 18px; border: 1px solid #F1F5F9;">
+        <div class="section-header" style="margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="section-title">Bugungi kunlik balans</div>
+            <span style="font-size: 11px; font-weight: 700; color: #059669; background: #ECFDF5; padding: 3px 8px; border-radius: 8px;" id="today-date-badge">Bugun</span>
           </div>
-          <span class="section-link" onclick="switchTab('reports')">Hisobot →</span>
+          <span class="section-link" onclick="switchTab('transactions')">Barchasi →</span>
         </div>
-        <div class="chart-container" id="monthly-chart">
-          <!-- Dynamically filled -->
+
+        <!-- Kunlik Sof Qoldiq (Net Balance) -->
+        <div style="background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%); border-radius: 16px; padding: 14px 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Bugungi sof qoldiq</div>
+            <div style="font-size: 20px; font-weight: 800;" id="today-net-balance">0 so‘m</div>
+          </div>
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: #E2E8F0; display: flex; align-items: center; justify-content: center; font-size: 20px;" id="today-net-icon">
+            ⚖️
+          </div>
+        </div>
+
+        <!-- Kunlik Kirim va Chiqim qatorlari -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div style="background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 14px; padding: 12px;">
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #16A34A; margin-bottom: 4px;">
+              <span>↓</span> Bugungi kirim
+            </div>
+            <div id="today-income-sum" style="font-size: 16px; font-weight: 800; color: #15803D;">0 so‘m</div>
+            <div id="today-income-count" style="font-size: 11px; color: #059669; margin-top: 2px;">0 ta amal</div>
+          </div>
+
+          <div style="background: #FEF2F2; border: 1px solid #FECACA; border-radius: 14px; padding: 12px;">
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #DC2626; margin-bottom: 4px;">
+              <span>↑</span> Bugungi chiqim
+            </div>
+            <div id="today-expense-sum" style="font-size: 16px; font-weight: 800; color: #B91C1C;">0 so‘m</div>
+            <div id="today-expense-count" style="font-size: 11px; color: #DC2626; margin-top: 2px;">0 ta amal</div>
+          </div>
         </div>
       </div>
 
@@ -1185,6 +1212,50 @@
       });
     }
 
+    function renderTodayBalanceCard() {
+      const todayStr = new Date().toISOString().slice(0, 10);
+      let tInc = 0;
+      let tExp = 0;
+      let incCount = 0;
+      let expCount = 0;
+
+      allTransactions.forEach(t => {
+        const d = (t.tx_date || t.date || '').slice(0, 10);
+        if (d === todayStr) {
+          const isInc = (Number(t.income) > 0) || (t.type === 'income');
+          const amt = isInc ? (Number(t.income) || Number(t.amount) || 0) : (Number(t.expense) || Number(t.amount) || 0);
+          if (isInc) {
+            tInc += amt;
+            incCount++;
+          } else {
+            tExp += amt;
+            expCount++;
+          }
+        }
+      });
+
+      const net = tInc - tExp;
+      const netEl = document.getElementById('today-net-balance');
+      const iconEl = document.getElementById('today-net-icon');
+      if (netEl) {
+        netEl.innerText = (net >= 0 ? '+' : '') + fmt(net);
+        netEl.style.color = net > 0 ? '#15803D' : (net < 0 ? '#B91C1C' : '#334155');
+      }
+      if (iconEl) {
+        iconEl.innerHTML = net > 0 ? '📈' : (net < 0 ? '📉' : '⚖️');
+      }
+
+      const incSumEl = document.getElementById('today-income-sum');
+      const incCountEl = document.getElementById('today-income-count');
+      if (incSumEl) incSumEl.innerText = fmt(tInc);
+      if (incCountEl) incCountEl.innerText = `${incCount} ta kirim`;
+
+      const expSumEl = document.getElementById('today-expense-sum');
+      const expCountEl = document.getElementById('today-expense-count');
+      if (expSumEl) expSumEl.innerText = fmt(tExp);
+      if (expCountEl) expCountEl.innerText = `${expCount} ta chiqim`;
+    }
+
     // Fetch and Load All Data from API
     async function loadAllData() {
       try {
@@ -1210,6 +1281,7 @@
           renderTransactions();
           renderHomeRecent();
           renderPeriodBreakdown();
+          renderTodayBalanceCard();
         }
 
         // 3. Reports API
