@@ -6,7 +6,9 @@ from urllib.parse import urlparse
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
+    KeyboardButton,
     MenuButtonWebApp,
+    ReplyKeyboardMarkup,
     Update,
     WebAppInfo,
 )
@@ -51,38 +53,38 @@ async def _deny(update: Update) -> None:
         )
 
 
+DEFAULT_WEBAPP_URL = "https://hamyon-tan.vercel.app"
+
+
 def _webapp_url() -> str:
-    url = os.environ.get("TELEGRAM_WEBAPP_URL", "").strip()
+    url = os.environ.get("TELEGRAM_WEBAPP_URL", "").strip() or DEFAULT_WEBAPP_URL
     parsed = urlparse(url)
     if parsed.scheme != "https" or not parsed.netloc:
-        return ""
+        return DEFAULT_WEBAPP_URL
     return url
 
 
-def _dashboard_url() -> str:
-    env_url = os.environ.get("TELEGRAM_WEBAPP_URL", "").strip()
-    if env_url:
-        return env_url
-    try:
-        import socket
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        local_ip = s.getsockname()[0]
-        s.close()
-        return f"http://{local_ip}:8501"
-    except Exception:
-        return "http://localhost:8501"
+def _main_reply_keyboard():
+    url = _webapp_url()
+    return ReplyKeyboardMarkup(
+        [
+            [KeyboardButton("📱 Smart Wallet (Mini App)", web_app=WebAppInfo(url=url))],
+            [KeyboardButton("💰 Balans"), KeyboardButton("🧾 Oxirgi amallar")],
+            [KeyboardButton("➕ Xarajat qo‘shish"), KeyboardButton("📊 Oylik hisobot")],
+        ],
+        resize_keyboard=True,
+    )
 
 
 def _start_keyboard():
     webapp_url = _webapp_url()
-    if webapp_url:
-        return InlineKeyboardMarkup([[
-            InlineKeyboardButton("📱 Smart Wallet’ni ochish", web_app=WebAppInfo(url=webapp_url))
-        ]])
-    return InlineKeyboardMarkup([[
-        InlineKeyboardButton("🌐 Dashboardni ochish (Brauzer)", url=_dashboard_url())
-    ]])
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("📱 Smart Wallet’ni ochish", web_app=WebAppInfo(url=webapp_url))],
+        [
+            InlineKeyboardButton("💰 Balans", callback_data="btn:balance"),
+            InlineKeyboardButton("🧾 Oxirgi amallar", callback_data="btn:recent"),
+        ],
+    ])
 
 
 async def setup_webapp_menu(app: Application) -> None:
@@ -101,19 +103,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await _deny(update)
         return
     await update.effective_message.reply_text(
-        "👋 Smart Wallet botiga xush kelibsiz!\n\n"
+        "👋 *Smart Wallet botiga xush kelibsiz!*\n\n"
         "⚡ *Tezkor kiritish:*\n"
         "Shunchaki xabar yuboring:\n"
         "• `45000 tushlik` (chiqim)\n"
         "• `25k taksi` (chiqim)\n"
         "• `+3.5m oylik` (kirim)\n"
-        "• Yoki Click/Payme SMS xabarini forward qiling.\n\n"
-        "📌 *Buyruqlar:*\n"
-        "/balance — balans va shu oy hisoboti\n"
-        "/recent — oxirgi 5 ta operatsiya\n"
-        "/add — bosqichma-bosqich kiritish\n"
-        "/app — mobil dashboardni ochish",
-        reply_markup=_start_keyboard(),
+        "• Yoki Click/Payme SMS xabarlarini yuboring.\n\n"
+        "👇 *Quyidagi tugmalar orqali boshqaring:*",
+        reply_markup=_main_reply_keyboard(),
         parse_mode="Markdown",
     )
 
@@ -472,11 +470,17 @@ def main() -> None:
     app.add_handler(CommandHandler("app", open_app))
     app.add_handler(CommandHandler("balance", balance))
     app.add_handler(CommandHandler("recent", recent))
+    app.add_handler(MessageHandler(filters.Regex(r"^💰 Balans$"), balance))
+    app.add_handler(MessageHandler(filters.Regex(r"^🧾 Oxirgi amallar$"), recent))
+    app.add_handler(MessageHandler(filters.Regex(r"^📊 Oylik hisobot$"), balance))
+    app.add_handler(MessageHandler(filters.Regex(r"^➕ Xarajat qo‘shish$"), begin_add))
     app.add_handler(conversation)
     app.add_handler(CommandHandler("cancel", cancel))
     app.add_handler(CallbackQueryHandler(undo_callback, pattern=r"^undo:\d+$"))
     app.add_handler(CallbackQueryHandler(edit_category_callback, pattern=r"^editcat:\d+:(income|expense)$"))
     app.add_handler(CallbackQueryHandler(set_category_callback, pattern=r"^setcat:\d+:\d+:(income|expense)$"))
+    app.add_handler(CallbackQueryHandler(balance, pattern=r"^btn:balance$"))
+    app.add_handler(CallbackQueryHandler(recent, pattern=r"^btn:recent$"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, quick_entry))
     app.add_handler(MessageHandler(filters.COMMAND, unknown))
     print("Smart Wallet Telegram bot ishga tushdi. To‘xtatish uchun Ctrl+C bosing.")
