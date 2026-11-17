@@ -448,8 +448,8 @@ def _load_env_file() -> None:
 
 def main() -> None:
     _load_env_file()
-    token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip() or "9288305255:AAHilxcAa-YJC0bMRobL6e0sL24vybMXPbA"
-    allowed_user_id = os.environ.get("TELEGRAM_ALLOWED_USER_ID", "").strip() or "5377564628"
+    token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip() or DEFAULT_BOT_TOKEN
+    allowed_user_id = os.environ.get("TELEGRAM_ALLOWED_USER_ID", "").strip() or DEFAULT_USER_ID
     if not token:
         raise SystemExit("TELEGRAM_BOT_TOKEN muhit o‘zgaruvchisini o‘rnating.")
     if not allowed_user_id.isdigit():
@@ -468,7 +468,6 @@ def main() -> None:
             ],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
-        per_message=True,
     )
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("app", open_app))
