@@ -12,8 +12,10 @@ from wallet_db import (
     db,
     delete_transaction,
     delete_all_transactions,
+    get_user,
     load_budgets,
     load_data,
+    register_or_update_user,
     save_budget,
     update_transaction_category,
 )
@@ -48,6 +50,41 @@ class BudgetSet(BaseModel):
 class CategoryUpdate(BaseModel):
     category: str
 
+
+class UserAuthRequest(BaseModel):
+    telegram_id: str
+    phone_number: Optional[str] = ""
+    first_name: Optional[str] = ""
+    last_name: Optional[str] = ""
+    username: Optional[str] = ""
+
+@app.get("/api/users/{telegram_id}")
+def api_get_user(telegram_id: str):
+    conn = db()
+    try:
+        user = get_user(conn, telegram_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="Foydalanuvchi topilmadi")
+        return {"success": True, "user": user}
+    finally:
+        conn.close()
+
+@app.post("/api/users/register")
+def api_register_user(req: UserAuthRequest):
+    conn = db()
+    try:
+        register_or_update_user(
+            conn,
+            req.telegram_id,
+            req.phone_number or "",
+            req.first_name or "",
+            req.last_name or "",
+            req.username or "",
+        )
+        user = get_user(conn, req.telegram_id)
+        return {"success": True, "user": user}
+    finally:
+        conn.close()
 
 @app.get("/api/dashboard")
 def api_dashboard(period: Optional[str] = "30 kun"):

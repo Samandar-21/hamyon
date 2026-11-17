@@ -1205,7 +1205,37 @@
     let allTransactions = [];
 
     // Check Local Login Session
-    function checkAuthSession() {
+    async function checkAuthSession() {
+      // 1. Agar Telegram WebApp orqali ochilgan bo'lsa, avval Telegram user ID ni tekshiramiz
+      const tg = window.Telegram?.WebApp;
+      const tgUser = tg?.initDataUnsafe?.user;
+
+      if (tgUser && tgUser.id) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/api/users/${tgUser.id}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.user) {
+              const uData = {
+                name: data.user.first_name || tgUser.first_name || tgUser.username || 'Foydalanuvchi',
+                phone: data.user.phone_number || (tgUser.username ? '@' + tgUser.username : ''),
+                telegram_id: tgUser.id,
+                loggedIn: true
+              };
+              localStorage.setItem("smart_wallet_user", JSON.stringify(uData));
+              currentUser = uData;
+              applyUserData(currentUser);
+              document.getElementById('view-onboarding').classList.add('hidden');
+              document.getElementById('view-auth').classList.add('hidden');
+              return;
+            }
+          }
+        } catch (e) {
+          console.warn("User fetch error:", e);
+        }
+      }
+
+      // 2. Agar localStorage da saqlangan session bo'lsa
       const saved = localStorage.getItem("smart_wallet_user");
       if (saved) {
         try {
@@ -1216,7 +1246,25 @@
           return;
         } catch (e) {}
       }
-      // Agar avval kirmagan bo'lsa Onboarding ko'rinadi
+
+      // 3. Agar Telegram user mavjud bo'lsa, to'g'ridan-to'g'ri uning akkaunti bilan ulab bosh sahifaga kiritish
+      if (tgUser) {
+        const uName = tgUser.first_name || tgUser.username || 'Foydalanuvchi';
+        const uData = {
+          name: uName,
+          phone: tgUser.username ? '@' + tgUser.username : `ID: ${tgUser.id}`,
+          telegram_id: tgUser.id,
+          loggedIn: true
+        };
+        localStorage.setItem("smart_wallet_user", JSON.stringify(uData));
+        currentUser = uData;
+        applyUserData(currentUser);
+        document.getElementById('view-onboarding').classList.add('hidden');
+        document.getElementById('view-auth').classList.add('hidden');
+        return;
+      }
+
+      // Agar mutlaqo ma'lumot bo'lmasa Onboarding ko'rinadi
       document.getElementById('view-onboarding').classList.remove('hidden');
     }
 

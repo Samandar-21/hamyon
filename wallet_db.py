@@ -36,8 +36,52 @@ def db():
         )
         """
     )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS users (
+            telegram_id TEXT PRIMARY KEY,
+            phone_number TEXT,
+            first_name TEXT,
+            last_name TEXT,
+            username TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
     conn.commit()
     return conn
+
+
+def get_user(conn, telegram_id):
+    cur = conn.cursor()
+    cur.execute("SELECT telegram_id, phone_number, first_name, last_name, username, created_at FROM users WHERE telegram_id = ?", (str(telegram_id),))
+    row = cur.fetchone()
+    if row:
+        return {
+            "telegram_id": row[0],
+            "phone_number": row[1],
+            "first_name": row[2],
+            "last_name": row[3],
+            "username": row[4],
+            "created_at": row[5],
+        }
+    return None
+
+
+def register_or_update_user(conn, telegram_id, phone_number, first_name="", last_name="", username=""):
+    conn.execute(
+        """
+        INSERT INTO users (telegram_id, phone_number, first_name, last_name, username)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(telegram_id) DO UPDATE SET
+            phone_number = excluded.phone_number,
+            first_name = excluded.first_name,
+            last_name = excluded.last_name,
+            username = excluded.username
+        """,
+        (str(telegram_id), str(phone_number), str(first_name or ""), str(last_name or ""), str(username or "")),
+    )
+    conn.commit()
 
 
 def add_transaction(conn, d, desc, category, income, expense, source="Manual"):

@@ -23,7 +23,15 @@ from telegram.ext import (
 )
 
 from wallet_analytics import get_dashboard_metrics
-from wallet_db import add_transaction, db, delete_transaction, load_data, update_transaction_category
+from wallet_db import (
+    add_transaction,
+    db,
+    delete_transaction,
+    get_user,
+    load_data,
+    register_or_update_user,
+    update_transaction_category,
+)
 from wallet_utils import parse_amount, parse_quick_entry
 
 SELECT_TYPE, ENTER_AMOUNT, SELECT_CATEGORY, ENTER_NOTE = range(4)
@@ -41,18 +49,38 @@ ALLOWED_USER_IDS = {"5377564628", "8004299236"}
 
 
 def _is_allowed(update: Update) -> bool:
-    env_user_id = os.environ.get("TELEGRAM_ALLOWED_USER_ID", "").strip()
-    if env_user_id:
-        ALLOWED_USER_IDS.add(env_user_id)
     user = update.effective_user
-    return bool(user and str(user.id) in ALLOWED_USER_IDS)
+    if not user:
+        return False
+    # Agar ruxsat berilgan ID larda bo'lsa
+    if str(user.id) in ALLOWED_USER_IDS:
+        return True
+    # Yoki ma'lumotlar bazasida ro'yxatdan o'tgan bo'lsa
+    conn = db()
+    try:
+        u = get_user(conn, str(user.id))
+        return bool(u and u.get("phone_number"))
+    finally:
+        conn.close()
+
+
+def _request_phone_keyboard():
+    return ReplyKeyboardMarkup(
+        [
+            [KeyboardButton("📞 Telefon raqamni ulashish", request_contact=True)],
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
 
 
 async def _deny(update: Update) -> None:
     if update.effective_message:
         await update.effective_message.reply_text(
-            "Botdan foydalanishga ruxsatingiz yo‘q. Telegram ID: "
-            f"{update.effective_user.id if update.effective_user else 'aniqlanmadi'}"
+            "🔒 *Smart Wallet'dan foydalanish uchun ro‘yxatdan o‘tishingiz kerak.*\n\n"
+            "Iltimos, pastdagi **«📞 Telefon raqamni ulashish»** tugmasini bosing yoki telefon raqamingizni yozib yuboring (masalan: `+998901234567`).",
+            reply_markup=_request_phone_keyboard(),
+            parse_mode="Markdown",
         )
 
 
@@ -102,6 +130,75 @@ async def setup_webapp_menu(app: Application) -> None:
             )
     except Exception as e:
         print(f"Menu button o'rnatishda ogohlantirish (e'tiborsiz qoldirsa bo'ladi): {e}")
+
+
+async def handle_contact_or_phone(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    msg = update.effective_message
+    user = update.effective_user
+    if not user or not msg:
+        return
+
+    phone = None
+    if msg.contact:
+        phone = msg.contact.phone_number
+    elif msg.text:
+        text = msg.text.strip().replace(" ", "").replace("-", "")
+        if (text.startswith("+998") or text.startswith("998") or text.startswith("8")) and len(text) >= 9:
+            phone = text
+
+    if not phone:
+        if not _is_allowed(update):
+            await _deny(update)
+        return
+
+    if not phone.startswith("+"):
+        phone = "+" + phone
+
+    conn = db()
+    try:
+        register_or_update_user(
+            conn,
+            telegram_id=str(user.id),
+            phone_number=phone,
+            first_name=user.first_name or "",
+            last_name=user.last_name or "",
+            username=user.username or "",
+        )
+        ALLOWED_USER_IDS.add(str(user.id))
+    finally:
+        conn.close()
+
+    # Render API'ga ham foydalanuvchini yuboramiz
+    try:
+        import urllib.request
+        import json
+        req_data = json.dumps({
+            "telegram_id": str(user.id),
+            "phone_number": phone,
+            "first_name": user.first_name or "",
+            "last_name": user.last_name or "",
+            "username": user.username or "",
+        }).encode("utf-8")
+        render_url = f"{RENDER_API_URL}/api/users/register"
+        req = urllib.request.Request(
+            render_url,
+            data=req_data,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        urllib.request.urlopen(req, timeout=3)
+    except Exception as e:
+        print(f"Render user sync warning: {e}")
+
+    await msg.reply_text(
+        f"🎉 *Tabriklaymiz, {user.first_name or 'qadrdon'}!*\n\n"
+        f"Siz muvaffaqiyatli ro‘yxatdan o‘tdingiz.\n"
+        f"📱 Telefon: `{phone}`\n\n"
+        "Endi botdan va **Smart Wallet (Mini App)** dan to‘liq foydalanishingiz mumkin. "
+        "Ilovaga kirganingizda ushbu akkauntingiz avtomatik ulanadi! 🚀",
+        reply_markup=_main_reply_keyboard(),
+        parse_mode="Markdown",
+    )
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -315,11 +412,17 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def quick_entry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    text = update.effective_message.text.strip() if update.effective_message and update.effective_message.text else ""
+    
+    # Agar telefon raqam kiritgan bo'lsa va hali ruxsati bo'lmasa, ro'yxatdan o'tkazish
+    cleaned_digits = text.replace(" ", "").replace("-", "")
+    if (cleaned_digits.startswith("+998") or cleaned_digits.startswith("998") or cleaned_digits.startswith("8")) and len(cleaned_digits) >= 9:
+        await handle_contact_or_phone(update, context)
+        return
+
     if not _is_allowed(update):
         await _deny(update)
         return
-
-    text = update.effective_message.text.strip()
     parsed = parse_quick_entry(text)
     if not parsed or parsed["amount"] <= 0:
         await update.effective_message.reply_text(
@@ -499,6 +602,7 @@ def main() -> None:
         fallbacks=[CommandHandler("cancel", cancel)],
     )
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.CONTACT, handle_contact_or_phone))
     app.add_handler(CommandHandler("app", open_app))
     app.add_handler(CommandHandler("balance", balance))
     app.add_handler(CommandHandler("recent", recent))
