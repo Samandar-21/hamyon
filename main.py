@@ -5,10 +5,10 @@ import threading
 import uvicorn
 from api import app as fastapi_app
 
-DEFAULT_BOT_TOKEN = "9288305255:AAHilxcAa-YJC0bMRobL6e0sL24vybMXPbA"
+DEFAULT_BOT_TOKEN = "9199753291:AAEKYuTXmn6moBejY9pvhydQtypv2cG0rQw"
 DEFAULT_USER_ID = "5377564628"
 
-os.environ["TELEGRAM_BOT_TOKEN"] = os.environ.get("TELEGRAM_BOT_TOKEN") or DEFAULT_BOT_TOKEN
+os.environ["TELEGRAM_BOT_TOKEN"] = "9199753291:AAEKYuTXmn6moBejY9pvhydQtypv2cG0rQw"
 os.environ["TELEGRAM_ALLOWED_USER_ID"] = os.environ.get("TELEGRAM_ALLOWED_USER_ID") or DEFAULT_USER_ID
 
 def run_fastapi():

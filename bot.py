@@ -33,7 +33,7 @@ EXPENSE_CATEGORIES = [
 INCOME_CATEGORIES = ["Ish haqi", "Biznes", "Sovg‘a", "Qo‘shimcha daromad", "Boshqa"]
 
 
-DEFAULT_BOT_TOKEN = "9288305255:AAHilxcAa-YJC0bMRobL6e0sL24vybMXPbA"
+DEFAULT_BOT_TOKEN = "9199753291:AAEKYuTXmn6moBejY9pvhydQtypv2cG0rQw"
 DEFAULT_USER_ID = "5377564628"
 
 
