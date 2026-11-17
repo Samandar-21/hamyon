@@ -86,6 +86,18 @@ def api_register_user(req: UserAuthRequest):
     finally:
         conn.close()
 
+@app.post("/api/admin/reset-database")
+def api_reset_database():
+    conn = db()
+    try:
+        conn.execute("DELETE FROM transactions")
+        conn.execute("DELETE FROM budgets")
+        conn.execute("DELETE FROM users")
+        conn.commit()
+        return {"success": True, "message": "Barcha ma'lumotlar va foydalanuvchilar tozalandi"}
+    finally:
+        conn.close()
+
 @app.get("/api/dashboard")
 def api_dashboard(period: Optional[str] = "30 kun"):
     conn = db()
