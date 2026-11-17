@@ -1564,8 +1564,16 @@
       }
     }
 
-    // Init Data Load
+    // Init Data Load va Real-Time Avto Yangilanish (har 3 soniyada)
     loadAllData();
+    setInterval(loadAllData, 3000);
+
+    // Telegram ilovasi ekranga qaytganida darhol yangilash
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) {
+        loadAllData();
+      }
+    });
   </script>
 </body>
 </html>
