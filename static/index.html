@@ -697,7 +697,7 @@
       <div class="top-header">
         <div>
           <div class="greeting-text">Salom,</div>
-          <div class="user-heading">Dilshod! <span>👋</span></div>
+          <div class="user-heading">Foydalanuvchi! <span>👋</span></div>
         </div>
         <div class="bell-btn" onclick="openModal('notifications')">🔔</div>
       </div>
@@ -1026,12 +1026,24 @@
       tg.expand();
       if (tg.setHeaderColor) tg.setHeaderColor('#064E3B');
       if (tg.setBackgroundColor) tg.setBackgroundColor('#F4F7F6');
-      if (tg.initDataUnsafe?.user) {
-        const u = tg.initDataUnsafe.user;
-        const name = (u.first_name || '') + ' ' + (u.last_name || '');
-        document.querySelector('.user-heading').innerHTML = (u.first_name || 'Foydalanuvchi') + '! <span>👋</span>';
-        document.getElementById('user-name-display').innerText = name.trim() || 'Foydalanuvchi';
-        if (u.username) document.getElementById('user-phone-display').innerText = '@' + u.username;
+      
+      const user = tg.initDataUnsafe?.user;
+      if (user) {
+        const displayName = user.first_name || user.username || 'Foydalanuvchi';
+        const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ') || displayName;
+        
+        const headingEl = document.querySelector('.user-heading');
+        if (headingEl) {
+          headingEl.innerHTML = `${displayName}! <span>👋</span>`;
+        }
+        const nameDispEl = document.getElementById('user-name-display');
+        if (nameDispEl) {
+          nameDispEl.innerText = fullName;
+        }
+        const phoneDispEl = document.getElementById('user-phone-display');
+        if (phoneDispEl) {
+          phoneDispEl.innerText = user.username ? '@' + user.username : (user.id ? 'ID: ' + user.id : '');
+        }
       }
     }
 
