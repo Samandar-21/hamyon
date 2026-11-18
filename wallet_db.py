@@ -68,6 +68,22 @@ def get_user(conn, telegram_id):
     return None
 
 
+def get_all_users(conn):
+    cur = conn.cursor()
+    cur.execute("SELECT telegram_id, phone_number, first_name, last_name, username, created_at FROM users")
+    users = []
+    for row in cur.fetchall():
+        users.append({
+            "telegram_id": row[0],
+            "phone_number": row[1],
+            "first_name": row[2],
+            "last_name": row[3],
+            "username": row[4],
+            "created_at": row[5],
+        })
+    return users
+
+
 def register_or_update_user(conn, telegram_id, phone_number, first_name="", last_name="", username=""):
     conn.execute(
         """

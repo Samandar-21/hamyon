@@ -6,7 +6,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from wallet_analytics import budget_status, category_expenses, get_dashboard_metrics, monthly_summary
+from wallet_analytics import (
+    budget_status,
+    build_daily_digest,
+    category_expenses,
+    get_dashboard_metrics,
+    monthly_summary,
+)
 from wallet_db import (
     add_transaction,
     db,
@@ -95,6 +101,16 @@ def api_reset_database():
         conn.execute("DELETE FROM users")
         conn.commit()
         return {"success": True, "message": "Barcha ma'lumotlar va foydalanuvchilar tozalandi"}
+    finally:
+        conn.close()
+
+@app.get("/api/reports/daily-digest")
+def api_daily_digest(target_date: Optional[str] = None):
+    conn = db()
+    try:
+        df = load_data(conn)
+        digest = build_daily_digest(df, target_date)
+        return {"success": True, "digest": digest}
     finally:
         conn.close()
 

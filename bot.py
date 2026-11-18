@@ -22,11 +22,12 @@ from telegram.ext import (
     filters,
 )
 
-from wallet_analytics import get_dashboard_metrics
+from wallet_analytics import build_daily_digest, get_dashboard_metrics
 from wallet_db import (
     add_transaction,
     db,
     delete_transaction,
+    get_all_users,
     get_user,
     load_data,
     register_or_update_user,
@@ -101,7 +102,7 @@ def _main_reply_keyboard():
         [
             [KeyboardButton("📱 Smart Wallet (Mini App)", web_app=WebAppInfo(url=url))],
             [KeyboardButton("💰 Balans"), KeyboardButton("🧾 Oxirgi amallar")],
-            [KeyboardButton("➕ Xarajat qo‘shish"), KeyboardButton("📊 Oylik hisobot")],
+            [KeyboardButton("➕ Xarajat qo‘shish"), KeyboardButton("🌙 Kunlik hisobot")],
         ],
         resize_keyboard=True,
     )
@@ -233,6 +234,60 @@ async def open_app(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "Smart Wallet mobil dashboardini oching:",
         reply_markup=keyboard,
     )
+
+
+async def daily_digest_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not _is_allowed(update):
+        await _deny(update)
+        return
+    conn = db()
+    try:
+        df = load_data(conn)
+        digest_text = build_daily_digest(df)
+    finally:
+        conn.close()
+
+    webapp_url = _webapp_url()
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("📱 Ilovada to‘liq ko‘rish", web_app=WebAppInfo(url=webapp_url))]
+    ])
+
+    await update.effective_message.reply_text(
+        digest_text,
+        reply_markup=keyboard,
+        parse_mode="Markdown",
+    )
+
+
+async def send_evening_digest_job(context: ContextTypes.DEFAULT_TYPE) -> None:
+    conn = db()
+    try:
+        df = load_data(conn)
+        digest_text = build_daily_digest(df)
+        users = get_all_users(conn)
+    finally:
+        conn.close()
+
+    user_ids = set(ALLOWED_USER_IDS)
+    for u in users:
+        if u.get("telegram_id"):
+            user_ids.add(str(u["telegram_id"]))
+
+    webapp_url = _webapp_url()
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("📱 Ilovada to‘liq ko‘rish", web_app=WebAppInfo(url=webapp_url))]
+    ])
+
+    for uid in user_ids:
+        try:
+            await context.bot.send_message(
+                chat_id=int(uid),
+                text=f"🌙 *Kechki kunlik xulosa*\n\n{digest_text}",
+                reply_markup=keyboard,
+                parse_mode="Markdown",
+            )
+        except Exception as e:
+            print(f"User {uid} ga kunlik hisobot yuborishda xatolik: {e}")
 
 
 async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -604,6 +659,17 @@ def main() -> None:
         raise SystemExit("TELEGRAM_ALLOWED_USER_ID ni raqamli Telegram ID bilan o‘rnating.")
 
     app = Application.builder().token(token).post_init(setup_webapp_menu).build()
+
+    # Kechki soat 21:00 da avtomatik kunlik xulosa yuborish (JobQueue)
+    if app.job_queue:
+        from datetime import time
+        import zoneinfo
+        try:
+            tashkent_tz = zoneinfo.ZoneInfo("Asia/Tashkent")
+            evening_time = time(hour=21, minute=0, tzinfo=tashkent_tz)
+        except Exception:
+            evening_time = time(hour=21, minute=0)
+        app.job_queue.run_daily(send_evening_digest_job, time=evening_time)
     conversation = ConversationHandler(
         entry_points=[CommandHandler("add", begin_add)],
         states={
@@ -622,9 +688,11 @@ def main() -> None:
     app.add_handler(CommandHandler("app", open_app))
     app.add_handler(CommandHandler("balance", balance))
     app.add_handler(CommandHandler("recent", recent))
+    app.add_handler(CommandHandler("digest", daily_digest_command))
+    app.add_handler(CommandHandler("today", daily_digest_command))
     app.add_handler(MessageHandler(filters.Regex(r"^💰 Balans$"), balance))
     app.add_handler(MessageHandler(filters.Regex(r"^🧾 Oxirgi amallar$"), recent))
-    app.add_handler(MessageHandler(filters.Regex(r"^📊 Oylik hisobot$"), balance))
+    app.add_handler(MessageHandler(filters.Regex(r"^(📊 Oylik hisobot|🌙 Kunlik hisobot)$"), daily_digest_command))
     app.add_handler(MessageHandler(filters.Regex(r"^➕ Xarajat qo‘shish$"), begin_add))
     app.add_handler(conversation)
     app.add_handler(CommandHandler("cancel", cancel))
