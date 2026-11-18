@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hamyon — Professional Admin Panel</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#064e3b',
+              900: '#022c22',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    * { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .sidebar-transition { transition: width 0.25s ease-in-out; }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .dark ::-webkit-scrollbar-thumb { background: #334155; }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex antialiased">
+
+  <!-- ==================== LOGIN MODAL / VIEW ==================== -->
+  <div id="login-view" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
+      <!-- Glow background -->
+      <div class="absolute -top-24 -right-24 w-48 h-48 bg-brand-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-500 flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-brand-500/30">
+          👛
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Hamyon Admin</h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Professional boshqaruv paneli</p>
+        </div>
+      </div>
+
+      <div id="login-error" class="hidden mb-4 p-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 rounded-xl text-xs text-red-600 dark:text-red-400 font-medium"></div>
+
+      <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Foydalanuvchi nomi</label>
+          <input type="text" id="login-username" required placeholder="admin" value="admin"
+            class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-xl text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Parol</label>
+          <input type="password" id="login-password" required placeholder="••••••••" value="admin123"
+            class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-xl text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition" />
+        </div>
+        <button type="submit" id="login-btn"
+          class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-600/30 hover:shadow-brand-600/40 transition active:scale-[0.98]">
+          Tizimga kirish →
+        </button>
+      </form>
+      <div class="mt-6 text-center text-[11px] text-slate-400">
+        Himoyalangan tizim • Faqat vakolatli xodimlar uchun
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN DASHBOARD LAYOUT ==================== -->
+  <div id="app-view" class="flex-1 flex min-h-screen overflow-hidden">
+    
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between sidebar-transition shrink-0 z-30">
+      <div>
+        <!-- Logo -->
+        <div class="h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center font-black text-lg shadow-md shadow-brand-600/20">
+              👛
+            </div>
+            <span class="font-bold text-base tracking-tight">Hamyon Admin</span>
+          </div>
+        </div>
+
+        <!-- Navigation items -->
+        <nav class="p-4 space-y-1.5">
+          <button onclick="switchTab('dashboard')" id="nav-dashboard"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/40 transition">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            <span>Dashboard</span>
+          </button>
+          <button onclick="switchTab('users')" id="nav-users"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition">
+            <i data-lucide="users" class="w-4 h-4"></i>
+            <span>Foydalanuvchilar</span>
+          </button>
+          <button onclick="switchTab('transactions')" id="nav-transactions"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition">
+            <i data-lucide="receipt" class="w-4 h-4"></i>
+            <span>Tranzaksiyalar</span>
+          </button>
+          <button onclick="switchTab('bot-monitoring')" id="nav-bot-monitoring"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition">
+            <i data-lucide="bot" class="w-4 h-4"></i>
+            <span>Bot monitoringi</span>
+          </button>
+          <button onclick="switchTab('audit-logs')" id="nav-audit-logs"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition">
+            <i data-lucide="shield-check" class="w-4 h-4"></i>
+            <span>Audit jurnali</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Bottom User / Logout -->
+      <div class="p-4 border-t border-slate-200 dark:border-slate-800">
+        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+          <div class="flex items-center gap-3 overflow-hidden">
+            <div class="w-8 h-8 rounded-lg bg-brand-500/20 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-xs shrink-0">
+              AD
+            </div>
+            <div class="truncate">
+              <div id="admin-display-name" class="text-xs font-bold truncate">Administrator</div>
+              <div id="admin-display-role" class="text-[10px] text-brand-600 uppercase font-semibold">Superadmin</div>
+            </div>
+          </div>
+          <button onclick="handleLogout()" title="Chiqish" class="p-2 text-slate-400 hover:text-red-500 transition">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CONTENT WRAPPER -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      
+      <!-- TOP HEADER -->
+      <header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 sticky top-0 z-20">
+        <div class="flex items-center gap-4">
+          <h2 id="page-title" class="text-lg font-bold">Dashboard</h2>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            Tizim faol
+          </span>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <!-- Refresh button -->
+          <button onclick="refreshCurrentTab()" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition" title="Yangilash">
+            <i data-lucide="refresh-cw" class="w-4 h-4" id="refresh-icon"></i>
+          </button>
+          <!-- Dark Mode Toggle -->
+          <button onclick="toggleDarkMode()" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+            <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i>
+            <i data-lucide="sun" class="w-4 h-4 block dark:hidden"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- MAIN BODY CONTAINER -->
+      <main class="flex-1 p-8 space-y-8">
+        
+        <!-- ================= SECTION 1: DASHBOARD ================= -->
+        <section id="section-dashboard" class="space-y-8">
+          <!-- KPI Cards Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Jami Foydalanuvchilar -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
+              <div class="flex items-center justify-between text-slate-500 mb-3">
+                <span class="text-xs font-semibold">Jami Foydalanuvchilar</span>
+                <div class="p-2 bg-blue-50 dark:bg-blue-950/40 text-blue-600 rounded-xl">
+                  <i data-lucide="users" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <div id="stat-total-users" class="text-2xl font-black mb-1">0</div>
+              <div class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
+                <span id="stat-new-users">0 ta yangi</span>
+              </div>
+            </div>
+
+            <!-- Bugun Faol Foydalanuvchilar -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
+              <div class="flex items-center justify-between text-slate-500 mb-3">
+                <span class="text-xs font-semibold">Bugun Faol Foydalanuvchilar</span>
+                <div class="p-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 rounded-xl">
+                  <i data-lucide="activity" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <div id="stat-active-users" class="text-2xl font-black mb-1">0</div>
+              <div class="text-[11px] text-slate-400">Kun davomidagi faollik</div>
+            </div>
+
+            <!-- Jami Tranzaksiyalar -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
+              <div class="flex items-center justify-between text-slate-500 mb-3">
+                <span class="text-xs font-semibold">Jami Tranzaksiyalar</span>
+                <div class="p-2 bg-purple-50 dark:bg-purple-950/40 text-purple-600 rounded-xl">
+                  <i data-lucide="receipt" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <div id="stat-total-txs" class="text-2xl font-black mb-1">0</div>
+              <div class="text-[11px] text-purple-600 font-semibold flex items-center gap-1">
+                <span>Bugun: </span>
+                <span id="stat-today-txs">0 ta</span>
+              </div>
+            </div>
+
+            <!-- Umumiy Xarajat / Kirim -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
+              <div class="flex items-center justify-between text-slate-500 mb-3">
+                <span class="text-xs font-semibold">Umumiy Xarajat</span>
+                <div class="p-2 bg-red-50 dark:bg-red-950/40 text-red-600 rounded-xl">
+                  <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <div id="stat-total-expense" class="text-2xl font-black text-red-500 mb-1">0 so‘m</div>
+              <div class="text-[11px] text-emerald-600 font-semibold" id="stat-total-income">
+                Kirim: +0 so‘m
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts Row -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Oylik Kirim va Chiqim Dinamikasi (2 ustun) -->
+            <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+              <div class="flex items-center justify-between mb-6">
+                <div>
+                  <h3 class="font-bold text-sm">Oylik Dinamika</h3>
+                  <p class="text-xs text-slate-400">Kirim va Chiqimlarning oylik taqqoslanishi</p>
+                </div>
+              </div>
+              <div class="h-64">
+                <canvas id="chart-monthly-trends"></canvas>
+              </div>
+            </div>
+
+            <!-- Manbalar ulushi: Bot vs Mini App (1 ustun) -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+              <div>
+                <h3 class="font-bold text-sm mb-1">Kiritish Manbalari Ulushi</h3>
+                <p class="text-xs text-slate-400 mb-4">Telegram Bot vs Mini App</p>
+                <div class="h-48 flex items-center justify-center">
+                  <canvas id="chart-sources"></canvas>
+                </div>
+              </div>
+              <div id="sources-legend" class="grid grid-cols-2 gap-2 text-xs pt-4 border-t border-slate-100 dark:border-slate-800"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= SECTION 2: USERS ================= -->
+        <section id="section-users" class="space-y-6 hidden">
+          <!-- Filters & Actions Bar -->
+          <div class="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 rounded-2xl">
+            <div class="relative w-full sm:w-80">
+              <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400"></i>
+              <input type="text" id="users-search" placeholder="ID, ism yoki username bo‘yicha qidirish..." oninput="debounceUserSearch()"
+                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:border-brand-500" />
+            </div>
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+              <select id="users-filter-status" onchange="loadUsersData()"
+                class="px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium outline-none">
+                <option value="all">Barcha holatlar</option>
+                <option value="active">Faol (Active)</option>
+                <option value="blocked">Bloklangan</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Users Table -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 dark:bg-slate-800/60 text-slate-400 font-semibold text-xs border-b border-slate-200 dark:border-slate-800">
+                  <tr>
+                    <th class="py-3.5 px-6">Telegram ID</th>
+                    <th class="py-3.5 px-6">Foydalanuvchi</th>
+                    <th class="py-3.5 px-6">Telefon raqam</th>
+                    <th class="py-3.5 px-6">Ro‘yxatdan o‘tgan</th>
+                    <th class="py-3.5 px-6">Holat</th>
+                    <th class="py-3.5 px-6 text-right">Amallar</th>
+                  </tr>
+                </thead>
+                <tbody id="users-table-body" class="divide-y divide-slate-100 dark:divide-slate-800/80">
+                  <!-- Filled by JS -->
+                </tbody>
+              </table>
+            </div>
+            <!-- Pagination Footer -->
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
+              <div id="users-count-info">0 ta foydalanuvchi ko‘rsatilmoqda</div>
+              <div class="flex gap-2" id="users-pagination"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= SECTION 3: TRANSACTIONS ================= -->
+        <section id="section-transactions" class="space-y-6 hidden">
+          <div class="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 rounded-2xl">
+            <div class="flex items-center gap-3">
+              <select id="tx-filter-type" onchange="filterTransactions()"
+                class="px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium outline-none">
+                <option value="all">Barcha amallar</option>
+                <option value="expense">Faqat Chiqim</option>
+                <option value="income">Faqat Kirim</option>
+              </select>
+              <select id="tx-filter-source" onchange="filterTransactions()"
+                class="px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium outline-none">
+                <option value="all">Barcha manbalar</option>
+                <option value="Telegram Bot">Telegram Bot</option>
+                <option value="Mobile App">Mini App</option>
+              </select>
+            </div>
+            <button onclick="exportToCSV()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm flex items-center gap-2 shadow-md shadow-emerald-600/20 transition">
+              <i data-lucide="download" class="w-4 h-4"></i>
+              <span>Excel/CSV Eksport</span>
+            </button>
+          </div>
+
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 dark:bg-slate-800/60 text-slate-400 font-semibold text-xs border-b border-slate-200 dark:border-slate-800">
+                  <tr>
+                    <th class="py-3.5 px-6">ID</th>
+                    <th class="py-3.5 px-6">Sana</th>
+                    <th class="py-3.5 px-6">Kategoriya</th>
+                    <th class="py-3.5 px-6">Izoh</th>
+                    <th class="py-3.5 px-6">Manba</th>
+                    <th class="py-3.5 px-6 text-right">Summa</th>
+                  </tr>
+                </thead>
+                <tbody id="tx-table-body" class="divide-y divide-slate-100 dark:divide-slate-800/80"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= SECTION 4: BOT MONITORING ================= -->
+        <section id="section-bot-monitoring" class="space-y-6 hidden">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
+              <div class="text-xs text-slate-400 mb-1">Telegram Bot</div>
+              <div class="text-lg font-bold text-slate-900 dark:text-white mb-2" id="health-bot-user">@hamyon_hisobi_bot</div>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-600">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Online
+              </span>
+            </div>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
+              <div class="text-xs text-slate-400 mb-1">Ma'lumotlar Bazasi</div>
+              <div class="text-lg font-bold text-slate-900 dark:text-white mb-2">SQLite (hamyon.db)</div>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-600">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Ulanish barqaror
+              </span>
+            </div>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
+              <div class="text-xs text-slate-400 mb-1">Mini App (Vercel)</div>
+              <div class="text-lg font-bold text-slate-900 dark:text-white mb-2">hamyon-tan.vercel.app</div>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-600">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 100% Sinxron
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= SECTION 5: AUDIT LOGS ================= -->
+        <section id="section-audit-logs" class="space-y-6 hidden">
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
+            <h3 class="font-bold text-sm mb-4">Ma'murlar harakatlari auditi</h3>
+            <div class="space-y-3" id="audit-logs-list">
+              <!-- Logs populated by JS -->
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    const API_BASE = "https://hamyon-ocfv.onrender.com";
+    let adminToken = localStorage.getItem("hamyon_admin_jwt");
+    let currentTab = "dashboard";
+    let rawTransactions = [];
+    let monthlyTrendsChart = null;
+    let sourcesPieChart = null;
+
+    // Dark Mode init
+    if (localStorage.getItem("theme") === "dark" || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    }
+
+    function toggleDarkMode() {
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem("theme", document.documentElement.classList.contains('dark') ? "dark" : "light");
+      if (monthlyTrendsChart) monthlyTrendsChart.destroy();
+      if (sourcesPieChart) sourcesPieChart.destroy();
+      renderDashboardCharts();
+    }
+
+    function checkAuth() {
+      if (!adminToken) {
+        document.getElementById('login-view').classList.remove('hidden');
+      } else {
+        document.getElementById('login-view').classList.add('hidden');
+        loadAdminProfile();
+        loadDashboardData();
+      }
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const u = document.getElementById('login-username').value.trim();
+      const p = document.getElementById('login-password').value.trim();
+      const errBox = document.getElementById('login-error');
+      errBox.classList.add('hidden');
+
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: u, password: p })
+        });
+        const data = await res.json();
+        if (res.ok && data.token) {
+          adminToken = data.token;
+          localStorage.setItem("hamyon_admin_jwt", adminToken);
+          document.getElementById('login-view').classList.add('hidden');
+          loadAdminProfile();
+          loadDashboardData();
+        } else {
+          errBox.innerText = data.detail || "Kirish xatosi!";
+          errBox.classList.remove('hidden');
+        }
+      } catch (err) {
+        errBox.innerText = "Server bilan aloqa uzildi.";
+        errBox.classList.remove('hidden');
+      }
+    }
+
+    function handleLogout() {
+      if (confirm("Haqiqatan ham chiqmoqchimisiz?")) {
+        localStorage.removeItem("hamyon_admin_jwt");
+        adminToken = null;
+        location.reload();
+      }
+    }
+
+    async function loadAdminProfile() {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/me`, {
+          headers: { "Authorization": `Bearer ${adminToken}` }
+        });
+        if (res.ok) {
+          const d = await res.json();
+          document.getElementById('admin-display-name').innerText = d.admin.name || d.admin.sub;
+          document.getElementById('admin-display-role').innerText = d.admin.role;
+        } else {
+          handleLogout();
+        }
+      } catch (e) {}
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      const sections = ['dashboard', 'users', 'transactions', 'bot-monitoring', 'audit-logs'];
+      sections.forEach(s => {
+        const el = document.getElementById(`section-${s}`);
+        const nav = document.getElementById(`nav-${s}`);
+        if (s === tab) {
+          el.classList.remove('hidden');
+          nav.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/40 transition";
+        } else {
+          el.classList.add('hidden');
+          nav.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition";
+        }
+      });
+      document.getElementById('page-title').innerText = tab.charAt(0).toUpperCase() + tab.slice(1).replace('-', ' ');
+      refreshCurrentTab();
+    }
+
+    function refreshCurrentTab() {
+      if (currentTab === 'dashboard') loadDashboardData();
+      if (currentTab === 'users') loadUsersData();
+      if (currentTab === 'transactions') loadTransactionsData();
+      if (currentTab === 'bot-monitoring') loadBotHealthData();
+      if (currentTab === 'audit-logs') loadAuditLogs();
+    }
+
+    // Numbers formatter
+    function fmt(val) {
+      return (Number(val) || 0).toLocaleString('uz-UZ') + " so‘m";
+    }
+
+    // Dashboard Data
+    async function loadDashboardData() {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/dashboard-stats`, {
+          headers: { "Authorization": `Bearer ${adminToken}` }
+        });
+        if (res.ok) {
+          const d = await res.json();
+          const s = d.stats;
+          document.getElementById('stat-total-users').innerText = s.total_users;
+          document.getElementById('stat-active-users').innerText = s.active_today_users;
+          document.getElementById('stat-new-users').innerText = `${s.new_today_users} ta yangi`;
+          document.getElementById('stat-total-txs').innerText = s.total_txs;
+          document.getElementById('stat-today-txs').innerText = `${s.today_txs} ta`;
+          document.getElementById('stat-total-expense').innerText = fmt(s.total_expense);
+          document.getElementById('stat-total-income').innerText = `Kirim: +${fmt(s.total_income)}`;
+
+          renderDashboardCharts(d.monthly_summary || [], d.sources || {});
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderDashboardCharts(monthly = [], sources = {}) {
+      const isDark = document.documentElement.classList.contains('dark');
+      const textColor = isDark ? '#94A3B8' : '#64748B';
+      const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
+
+      // 1. Monthly Trends Chart
+      const ctxMonthly = document.getElementById('chart-monthly-trends');
+      if (ctxMonthly) {
+        if (monthlyTrendsChart) monthlyTrendsChart.destroy();
+        const labels = monthly.map(m => m.month);
+        const expenses = monthly.map(m => m.expense || 0);
+        const incomes = monthly.map(m => m.income || 0);
+
+        monthlyTrendsChart = new Chart(ctxMonthly, {
+          type: 'bar',
+          data: {
+            labels: labels.length ? labels : ['Joriy oy'],
+            datasets: [
+              {
+                label: 'Chiqim',
+                data: expenses.length ? expenses : [0],
+                backgroundColor: '#EF4444',
+                borderRadius: 8
+              },
+              {
+                label: 'Kirim',
+                data: incomes.length ? incomes : [0],
+                backgroundColor: '#10B981',
+                borderRadius: 8
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { grid: { display: false }, ticks: { color: textColor } },
+              y: { grid: { color: gridColor }, ticks: { color: textColor } }
+            },
+            plugins: { legend: { labels: { color: textColor } } }
+          }
+        });
+      }
+
+      // 2. Sources Pie Chart
+      const ctxSources = document.getElementById('chart-sources');
+      if (ctxSources) {
+        if (sourcesPieChart) sourcesPieChart.destroy();
+        const keys = Object.keys(sources).length ? Object.keys(sources) : ['Telegram Bot', 'Mobile App'];
+        const values = Object.values(sources).length ? Object.values(sources) : [1, 1];
+
+        sourcesPieChart = new Chart(ctxSources, {
+          type: 'doughnut',
+          data: {
+            labels: keys,
+            datasets: [{
+              data: values,
+              backgroundColor: ['#059669', '#3B82F6', '#F59E0B', '#8B5CF6'],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+          }
+        });
+
+        // Custom Legend
+        const leg = document.getElementById('sources-legend');
+        leg.innerHTML = '';
+        keys.forEach((k, idx) => {
+          leg.innerHTML += `
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full" style="background: ${['#059669', '#3B82F6', '#F59E0B', '#8B5CF6'][idx % 4]}"></span>
+              <span class="truncate">${k}: <b>${values[idx]}</b></span>
+            </div>
+          `;
+        });
+      }
+    }
+
+    // Users
+    let userSearchTimeout;
+    function debounceUserSearch() {
+      clearTimeout(userSearchTimeout);
+      userSearchTimeout = setTimeout(loadUsersData, 300);
+    }
+
+    async function loadUsersData() {
+      const q = document.getElementById('users-search').value.trim();
+      const st = document.getElementById('users-filter-status').value;
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/users?search=${encodeURIComponent(q)}&status=${st}`, {
+          headers: { "Authorization": `Bearer ${adminToken}` }
+        });
+        if (res.ok) {
+          const d = await res.json();
+          const tbody = document.getElementById('users-table-body');
+          tbody.innerHTML = '';
+          document.getElementById('users-count-info').innerText = `${d.total} ta foydalanuvchi`;
+
+          if (!d.users || d.users.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">Foydalanuvchilar topilmadi</td></tr>`;
+            return;
+          }
+
+          d.users.forEach(u => {
+            const isBlocked = u.status === 'blocked';
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-slate-50 dark:hover:bg-slate-800/40 transition";
+            tr.innerHTML = `
+              <td class="py-3.5 px-6 font-mono text-xs text-slate-500">${u.telegram_id}</td>
+              <td class="py-3.5 px-6 font-semibold">
+                ${u.first_name || ''} ${u.last_name || ''}
+                <div class="text-xs text-slate-400 font-normal">@${u.username || 'mavjud_emas'}</div>
+              </td>
+              <td class="py-3.5 px-6">${u.phone_number || '—'}</td>
+              <td class="py-3.5 px-6 text-xs text-slate-500">${(u.created_at || '').slice(0, 10)}</td>
+              <td class="py-3.5 px-6">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${isBlocked ? 'bg-red-50 text-red-600 dark:bg-red-950/60' : 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60'}">
+                  ${isBlocked ? 'Bloklangan' : 'Faol'}
+                </span>
+              </td>
+              <td class="py-3.5 px-6 text-right">
+                <button onclick="toggleUserStatus('${u.telegram_id}', '${isBlocked ? 'active' : 'blocked'}')"
+                  class="px-3 py-1.5 rounded-lg text-xs font-bold ${isBlocked ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-red-100 text-red-700 hover:bg-red-200'} transition">
+                  ${isBlocked ? 'Faollashtirish' : 'Bloklash'}
+                </button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function toggleUserStatus(uid, newStatus) {
+      if (confirm(`Rostdan ham foydalanuvchini ${newStatus === 'blocked' ? 'bloklamoqchimisiz' : 'faollashtirmoqchimisiz'}?`)) {
+        try {
+          const res = await fetch(`${API_BASE}/api/admin/users/${uid}/status`, {
+            method: 'PATCH',
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${adminToken}`
+            },
+            body: JSON.stringify({ status: newStatus })
+          });
+          if (res.ok) {
+            loadUsersData();
+          } else {
+            const err = await res.json();
+            alert(err.detail || "Xatolik yuz berdi");
+          }
+        } catch (e) {
+          alert("Tarmoq xatosi!");
+        }
+      }
+    }
+
+    // Transactions
+    async function loadTransactionsData() {
+      try {
+        const res = await fetch(`${API_BASE}/api/transactions?limit=200`);
+        if (res.ok) {
+          rawTransactions = await res.json();
+          filterTransactions();
+        }
+      } catch (e) {}
+    }
+
+    function filterTransactions() {
+      const type = document.getElementById('tx-filter-type').value;
+      const src = document.getElementById('tx-filter-source').value;
+      let list = [...rawTransactions];
+
+      if (type !== 'all') {
+        list = list.filter(t => (type === 'income' ? (t.income > 0 || t.type === 'income') : (t.expense > 0 || t.type === 'expense')));
+      }
+      if (src !== 'all') {
+        list = list.filter(t => (t.source || '').includes(src));
+      }
+
+      const tbody = document.getElementById('tx-table-body');
+      tbody.innerHTML = '';
+      if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">Tranzaksiyalar mavjud emas</td></tr>`;
+        return;
+      }
+
+      list.forEach(t => {
+        const isInc = t.income > 0 || t.type === 'income';
+        const amt = isInc ? (t.income || t.amount) : (t.expense || t.amount);
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 dark:hover:bg-slate-800/40 transition";
+        tr.innerHTML = `
+          <td class="py-3.5 px-6 font-mono text-xs text-slate-400">#${t.id}</td>
+          <td class="py-3.5 px-6 text-xs text-slate-500">${t.tx_date || ''}</td>
+          <td class="py-3.5 px-6 font-semibold">${t.category || 'Boshqa'}</td>
+          <td class="py-3.5 px-6 text-slate-500">${t.description || '—'}</td>
+          <td class="py-3.5 px-6 text-xs text-slate-400">${t.source || 'Manual'}</td>
+          <td class="py-3.5 px-6 text-right font-black ${isInc ? 'text-emerald-500' : 'text-red-500'}">
+            ${isInc ? '+' : '-'}${fmt(amt)}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function exportToCSV() {
+      if (!rawTransactions.length) return alert("Eksport uchun ma'lumot yo'q!");
+      let csv = "ID,Sana,Kategoriya,Izoh,Manba,Kirim,Chiqim\n";
+      rawTransactions.forEach(t => {
+        csv += `"${t.id}","${t.tx_date}","${t.category}","${t.description}","${t.source}","${t.income || 0}","${t.expense || 0}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Hamyon_Hisobot_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    }
+
+    // Bot Health
+    async function loadBotHealthData() {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/bot-health`, {
+          headers: { "Authorization": `Bearer ${adminToken}` }
+        });
+        if (res.ok) {
+          const d = await res.json();
+          document.getElementById('health-bot-user').innerText = d.bot_username;
+        }
+      } catch (e) {}
+    }
+
+    // Audit Logs
+    async function loadAuditLogs() {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/audit-logs`, {
+          headers: { "Authorization": `Bearer ${adminToken}` }
+        });
+        if (res.ok) {
+          const d = await res.json();
+          const box = document.getElementById('audit-logs-list');
+          box.innerHTML = '';
+          if (!d.logs || !d.logs.length) {
+            box.innerHTML = `<div class="text-xs text-slate-400 p-4 text-center">Hozircha audit yozuvlari mavjud emas</div>`;
+            return;
+          }
+          d.logs.forEach(l => {
+            box.innerHTML += `
+              <div class="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 text-xs">
+                <div>
+                  <span class="font-bold text-slate-800 dark:text-slate-200">${l.admin_username}</span>:
+                  <span class="text-slate-500 font-mono">${l.action}</span>
+                  <div class="text-[11px] text-slate-400 mt-0.5">${l.details || ''}</div>
+                </div>
+                <div class="text-[11px] text-slate-400">${l.created_at || ''}</div>
+              </div>
+            `;
+          });
+        }
+      } catch (e) {}
+    }
+
+    // Auto-init
+    checkAuth();
+    lucide.createIcons();
+  </script>
+</body>
+</html>

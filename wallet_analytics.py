@@ -59,6 +59,18 @@ def monthly_summary(df):
     return grouped.sort_values("month")
 
 
+def budget_status(df, budgets_df):
+    if budgets_df.empty:
+        return pd.DataFrame(columns=["category", "limit", "spent", "remaining"])
+
+    expenses_by_cat = category_expenses(df)
+    merged = budgets_df[["category", "limit_amount"]].rename(columns={"limit_amount": "limit"}).copy()
+    merged = merged.merge(expenses_by_cat.rename(columns={"expense": "spent"}), on="category", how="left")
+    merged["spent"] = merged["spent"].fillna(0)
+    merged["remaining"] = merged["limit"] - merged["spent"]
+    return merged[["category", "limit", "spent", "remaining"]].sort_values("spent", ascending=False)
+
+
 def build_daily_digest(df, target_date=None):
     from datetime import date
     if not target_date:
