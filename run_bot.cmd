@@ -16,7 +16,7 @@ if "%TELEGRAM_BOT_TOKEN%"=="" (
     echo.
     echo [DIQQAT] TELEGRAM_BOT_TOKEN kiritilmagan!
     echo Iltimos, Telegram @BotFather'dan olgan tokenni kiriting:
-    set /p TELEGRAM_BOT_TOKEN="Bot Token: 9288305255:AAHilxcAa-YJC0bMRobL6e0sL24vybMXPbA "
+    set /p TELEGRAM_BOT_TOKEN="Bot Token: 9199753291:AAGzmpih6dtXlkRGG_v8oEuFvsB9IgW05wo "
 )
 
 if "%TELEGRAM_ALLOWED_USER_ID%"=="" (

@@ -44,9 +44,9 @@ EXPENSE_CATEGORIES = [
 INCOME_CATEGORIES = ["Ish haqi", "Biznes", "Sovg‘a", "Qo‘shimcha daromad", "Boshqa"]
 
 
-DEFAULT_BOT_TOKEN = "9199753291:AAEKYuTXmn6moBejY9pvhydQtypv2cG0rQw"
+DEFAULT_BOT_TOKEN = "9199753291:AAGzmpih6dtXlkRGG_v8oEuFvsB9IgW05wo"
 DEFAULT_USER_ID = "5377564628"
-ALLOWED_USER_IDS = {"5377564628", "8004299236"}
+ALLOWED_USER_IDS = {"5377564628"}
 
 
 def _is_allowed(update: Update) -> bool:
