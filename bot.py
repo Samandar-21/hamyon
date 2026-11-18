@@ -187,7 +187,7 @@ async def handle_contact_or_phone(update: Update, context: ContextTypes.DEFAULT_
             headers={"Content-Type": "application/json"},
             method="POST",
         )
-        urllib.request.urlopen(req, timeout=3)
+        urllib.request.urlopen(req, timeout=10)
     except Exception as e:
         print(f"Render user sync warning: {e}")
 
@@ -517,7 +517,7 @@ async def quick_entry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             data=req_data,
             headers={"Content-Type": "application/json"}
         )
-        with urllib.request.urlopen(req, timeout=5) as resp:
+        with urllib.request.urlopen(req, timeout=12) as resp:
             if resp.status == 200:
                 api_success = True
                 res_body = json.loads(resp.read().decode("utf-8"))
