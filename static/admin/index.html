@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="uz">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -32,26 +33,50 @@
   </script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-    * { font-family: 'Plus Jakarta Sans', sans-serif; }
-    .sidebar-transition { transition: width 0.25s ease-in-out; }
+
+    * {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .sidebar-transition {
+      transition: width 0.25s ease-in-out;
+    }
+
     /* Custom Scrollbar */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    .dark ::-webkit-scrollbar-thumb { background: #334155; }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    .dark ::-webkit-scrollbar-thumb {
+      background: #334155;
+    }
   </style>
 </head>
+
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex antialiased">
 
   <!-- ==================== LOGIN MODAL / VIEW ==================== -->
-  <div id="login-view" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 hidden">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
+  <div id="login-view"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 hidden">
+    <div
+      class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
       <!-- Glow background -->
       <div class="absolute -top-24 -right-24 w-48 h-48 bg-brand-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
       <div class="flex items-center gap-3 mb-6">
-        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-500 flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-brand-500/30">
-          👛
+        <div
+          class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-500 flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-brand-500/30">
+          💼
         </div>
         <div>
           <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Hamyon Admin</h1>
@@ -59,11 +84,14 @@
         </div>
       </div>
 
-      <div id="login-error" class="hidden mb-4 p-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 rounded-xl text-xs text-red-600 dark:text-red-400 font-medium"></div>
+      <div id="login-error"
+        class="hidden mb-4 p-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 rounded-xl text-xs text-red-600 dark:text-red-400 font-medium">
+      </div>
 
       <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
         <div>
-          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Foydalanuvchi nomi</label>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Foydalanuvchi
+            nomi</label>
           <input type="text" id="login-username" required placeholder="admin" value="admin"
             class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-xl text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition" />
         </div>
@@ -85,15 +113,17 @@
 
   <!-- ==================== MAIN DASHBOARD LAYOUT ==================== -->
   <div id="app-view" class="flex-1 flex min-h-screen overflow-hidden">
-    
+
     <!-- SIDEBAR -->
-    <aside id="sidebar" class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between sidebar-transition shrink-0 z-30">
+    <aside id="sidebar"
+      class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between sidebar-transition shrink-0 z-30">
       <div>
         <!-- Logo -->
         <div class="h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center font-black text-lg shadow-md shadow-brand-600/20">
-              👛
+            <div
+              class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center font-black text-lg shadow-md shadow-brand-600/20">
+              💼
             </div>
             <span class="font-bold text-base tracking-tight">Hamyon Admin</span>
           </div>
@@ -133,7 +163,8 @@
       <div class="p-4 border-t border-slate-200 dark:border-slate-800">
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50">
           <div class="flex items-center gap-3 overflow-hidden">
-            <div class="w-8 h-8 rounded-lg bg-brand-500/20 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-xs shrink-0">
+            <div
+              class="w-8 h-8 rounded-lg bg-brand-500/20 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-xs shrink-0">
               AD
             </div>
             <div class="truncate">
@@ -150,12 +181,14 @@
 
     <!-- CONTENT WRAPPER -->
     <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
-      
+
       <!-- TOP HEADER -->
-      <header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 sticky top-0 z-20">
+      <header
+        class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 sticky top-0 z-20">
         <div class="flex items-center gap-4">
           <h2 id="page-title" class="text-lg font-bold">Dashboard</h2>
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50">
+          <span
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             Tizim faol
           </span>
@@ -163,11 +196,14 @@
 
         <div class="flex items-center gap-3">
           <!-- Refresh button -->
-          <button onclick="refreshCurrentTab()" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition" title="Yangilash">
+          <button onclick="refreshCurrentTab()"
+            class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+            title="Yangilash">
             <i data-lucide="refresh-cw" class="w-4 h-4" id="refresh-icon"></i>
           </button>
           <!-- Dark Mode Toggle -->
-          <button onclick="toggleDarkMode()" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+          <button onclick="toggleDarkMode()"
+            class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
             <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i>
             <i data-lucide="sun" class="w-4 h-4 block dark:hidden"></i>
           </button>
@@ -176,13 +212,14 @@
 
       <!-- MAIN BODY CONTAINER -->
       <main class="flex-1 p-8 space-y-8">
-        
+
         <!-- ================= SECTION 1: DASHBOARD ================= -->
         <section id="section-dashboard" class="space-y-8">
           <!-- KPI Cards Grid -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <!-- Jami Foydalanuvchilar -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
+            <div
+              class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
               <div class="flex items-center justify-between text-slate-500 mb-3">
                 <span class="text-xs font-semibold">Jami Foydalanuvchilar</span>
                 <div class="p-2 bg-blue-50 dark:bg-blue-950/40 text-blue-600 rounded-xl">
@@ -197,7 +234,8 @@
             </div>
 
             <!-- Bugun Faol Foydalanuvchilar -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
+            <div
+              class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
               <div class="flex items-center justify-between text-slate-500 mb-3">
                 <span class="text-xs font-semibold">Bugun Faol Foydalanuvchilar</span>
                 <div class="p-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 rounded-xl">
@@ -209,7 +247,8 @@
             </div>
 
             <!-- Jami Tranzaksiyalar -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
+            <div
+              class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
               <div class="flex items-center justify-between text-slate-500 mb-3">
                 <span class="text-xs font-semibold">Jami Tranzaksiyalar</span>
                 <div class="p-2 bg-purple-50 dark:bg-purple-950/40 text-purple-600 rounded-xl">
@@ -224,7 +263,8 @@
             </div>
 
             <!-- Umumiy Xarajat / Kirim -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
+            <div
+              class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
               <div class="flex items-center justify-between text-slate-500 mb-3">
                 <span class="text-xs font-semibold">Umumiy Xarajat</span>
                 <div class="p-2 bg-red-50 dark:bg-red-950/40 text-red-600 rounded-xl">
@@ -241,7 +281,8 @@
           <!-- Charts Row -->
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Oylik Kirim va Chiqim Dinamikasi (2 ustun) -->
-            <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+            <div
+              class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
               <div class="flex items-center justify-between mb-6">
                 <div>
                   <h3 class="font-bold text-sm">Oylik Dinamika</h3>
@@ -254,7 +295,8 @@
             </div>
 
             <!-- Manbalar ulushi: Bot vs Mini App (1 ustun) -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+            <div
+              class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
               <div>
                 <h3 class="font-bold text-sm mb-1">Kiritish Manbalari Ulushi</h3>
                 <p class="text-xs text-slate-400 mb-4">Telegram Bot vs Mini App</p>
@@ -262,7 +304,8 @@
                   <canvas id="chart-sources"></canvas>
                 </div>
               </div>
-              <div id="sources-legend" class="grid grid-cols-2 gap-2 text-xs pt-4 border-t border-slate-100 dark:border-slate-800"></div>
+              <div id="sources-legend"
+                class="grid grid-cols-2 gap-2 text-xs pt-4 border-t border-slate-100 dark:border-slate-800"></div>
             </div>
           </div>
         </section>
@@ -270,10 +313,12 @@
         <!-- ================= SECTION 2: USERS ================= -->
         <section id="section-users" class="space-y-6 hidden">
           <!-- Filters & Actions Bar -->
-          <div class="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 rounded-2xl">
+          <div
+            class="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 rounded-2xl">
             <div class="relative w-full sm:w-80">
               <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400"></i>
-              <input type="text" id="users-search" placeholder="ID, ism yoki username bo‘yicha qidirish..." oninput="debounceUserSearch()"
+              <input type="text" id="users-search" placeholder="ID, ism yoki username bo‘yicha qidirish..."
+                oninput="debounceUserSearch()"
                 class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:border-brand-500" />
             </div>
             <div class="flex items-center gap-3 w-full sm:w-auto">
@@ -287,10 +332,12 @@
           </div>
 
           <!-- Users Table -->
-          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+          <div
+            class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
             <div class="overflow-x-auto">
               <table class="w-full text-left text-sm">
-                <thead class="bg-slate-50 dark:bg-slate-800/60 text-slate-400 font-semibold text-xs border-b border-slate-200 dark:border-slate-800">
+                <thead
+                  class="bg-slate-50 dark:bg-slate-800/60 text-slate-400 font-semibold text-xs border-b border-slate-200 dark:border-slate-800">
                   <tr>
                     <th class="py-3.5 px-6">Telegram ID</th>
                     <th class="py-3.5 px-6">Foydalanuvchi</th>
@@ -306,7 +353,8 @@
               </table>
             </div>
             <!-- Pagination Footer -->
-            <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
+            <div
+              class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
               <div id="users-count-info">0 ta foydalanuvchi ko‘rsatilmoqda</div>
               <div class="flex gap-2" id="users-pagination"></div>
             </div>
@@ -315,7 +363,8 @@
 
         <!-- ================= SECTION 3: TRANSACTIONS ================= -->
         <section id="section-transactions" class="space-y-6 hidden">
-          <div class="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 rounded-2xl">
+          <div
+            class="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 rounded-2xl">
             <div class="flex items-center gap-3">
               <select id="tx-filter-type" onchange="filterTransactions()"
                 class="px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium outline-none">
@@ -330,16 +379,19 @@
                 <option value="Mobile App">Mini App</option>
               </select>
             </div>
-            <button onclick="exportToCSV()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm flex items-center gap-2 shadow-md shadow-emerald-600/20 transition">
+            <button onclick="exportToCSV()"
+              class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm flex items-center gap-2 shadow-md shadow-emerald-600/20 transition">
               <i data-lucide="download" class="w-4 h-4"></i>
               <span>Excel/CSV Eksport</span>
             </button>
           </div>
 
-          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+          <div
+            class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
             <div class="overflow-x-auto">
               <table class="w-full text-left text-sm">
-                <thead class="bg-slate-50 dark:bg-slate-800/60 text-slate-400 font-semibold text-xs border-b border-slate-200 dark:border-slate-800">
+                <thead
+                  class="bg-slate-50 dark:bg-slate-800/60 text-slate-400 font-semibold text-xs border-b border-slate-200 dark:border-slate-800">
                   <tr>
                     <th class="py-3.5 px-6">ID</th>
                     <th class="py-3.5 px-6">Sana</th>
@@ -360,22 +412,26 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
               <div class="text-xs text-slate-400 mb-1">Telegram Bot</div>
-              <div class="text-lg font-bold text-slate-900 dark:text-white mb-2" id="health-bot-user">@hamyon_hisobi_bot</div>
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-600">
+              <div class="text-lg font-bold text-slate-900 dark:text-white mb-2" id="health-bot-user">@hamyon_hisobi_bot
+              </div>
+              <span
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-600">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Online
               </span>
             </div>
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
               <div class="text-xs text-slate-400 mb-1">Ma'lumotlar Bazasi</div>
               <div class="text-lg font-bold text-slate-900 dark:text-white mb-2">SQLite (hamyon.db)</div>
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-600">
+              <span
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-600">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Ulanish barqaror
               </span>
             </div>
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
               <div class="text-xs text-slate-400 mb-1">Mini App (Vercel)</div>
               <div class="text-lg font-bold text-slate-900 dark:text-white mb-2">hamyon-tan.vercel.app</div>
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-600">
+              <span
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-600">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 100% Sinxron
               </span>
             </div>
@@ -478,7 +534,7 @@
         } else {
           handleLogout();
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     function switchTab(tab) {
@@ -706,7 +762,7 @@
           rawTransactions = await res.json();
           filterTransactions();
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     function filterTransactions() {
@@ -757,7 +813,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Hamyon_Hisobot_${new Date().toISOString().slice(0,10)}.csv`;
+      a.download = `Hamyon_Hisobot_${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
     }
 
@@ -771,7 +827,7 @@
           const d = await res.json();
           document.getElementById('health-bot-user').innerText = d.bot_username;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     // Audit Logs
@@ -801,7 +857,7 @@
             `;
           });
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     // Auto-init
@@ -809,4 +865,5 @@
     lucide.createIcons();
   </script>
 </body>
+
 </html>

@@ -525,6 +525,22 @@ def api_reports(period: str = "Oy"):
         conn.close()
 
 
+@app.post("/api/admin/reset-data")
+def api_admin_reset_data(authorization: Optional[str] = Header(None)):
+    admin = get_current_admin(authorization)
+    conn = db()
+    try:
+        c = conn.cursor()
+        c.execute("DELETE FROM transactions")
+        c.execute("DELETE FROM users")
+        c.execute("DELETE FROM budgets")
+        c.execute("DELETE FROM audit_logs")
+        conn.commit()
+        return {"success": True, "message": "Ma'lumotlar bazasi 0 holatga keltirildi."}
+    finally:
+        conn.close()
+
+
 # Mount static directory for Mobile PWA
 static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 if os.path.exists(static_dir):
