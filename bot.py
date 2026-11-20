@@ -46,23 +46,65 @@ INCOME_CATEGORIES = ["Ish haqi", "Biznes", "Sovg‘a", "Qo‘shimcha daromad", "
 
 DEFAULT_BOT_TOKEN = "9199753291:AAGzmpih6dtXlkRGG_v8oEuFvsB9IgW05wo"
 DEFAULT_USER_ID = "5377564628"
-ALLOWED_USER_IDS = {"5377564628"}
+RENDER_API_URL = os.environ.get("RENDER_API_URL", "https://hamyon-ocfv.onrender.com").rstrip("/")
+ALLOWED_USER_IDS = set()
+
+def _sync_user_to_db_and_render(user, phone: str = "") -> None:
+    """Foydalanuvchini lokal bazaga ham, Render API bazasiga ham saqlaydi va faolligini yangilaydi."""
+    if not user:
+        return
+    tg_id = str(user.id)
+    first_name = user.first_name or ""
+    last_name = user.last_name or ""
+    username = user.username or ""
+
+    # 1. Lokal SQLite bazasiga yozish
+    conn = db()
+    try:
+        register_or_update_user(
+            conn,
+            telegram_id=tg_id,
+            phone_number=phone,
+            first_name=first_name,
+            last_name=last_name,
+            username=username,
+        )
+    except Exception as e:
+        print(f"Lokal DB user sync xatosi: {e}")
+    finally:
+        conn.close()
+
+    # 2. Render onlayn API'ga yuborish (Admin panel va Mini App ko'rishi uchun)
+    try:
+        import urllib.request
+        import json
+        req_data = json.dumps({
+            "telegram_id": tg_id,
+            "phone_number": phone,
+            "first_name": first_name,
+            "last_name": last_name,
+            "username": username,
+        }).encode("utf-8")
+        render_url = f"{RENDER_API_URL}/api/users/register"
+        req = urllib.request.Request(
+            render_url,
+            data=req_data,
+            headers={"Content-Type": "application/json", "User-Agent": "TelegramBot"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            pass
+    except Exception as e:
+        print(f"Render user sync xatosi: {e}")
 
 
 def _is_allowed(update: Update) -> bool:
     user = update.effective_user
     if not user:
         return False
-    # Agar ruxsat berilgan ID larda bo'lsa
-    if str(user.id) in ALLOWED_USER_IDS:
-        return True
-    # Yoki ma'lumotlar bazasida ro'yxatdan o'tgan bo'lsa
-    conn = db()
-    try:
-        u = get_user(conn, str(user.id))
-        return bool(u and u.get("phone_number"))
-    finally:
-        conn.close()
+    # Har qanday faoliyatda foydalanuvchini bazada yangilab boramiz
+    _sync_user_to_db_and_render(user)
+    return True
 
 
 def _request_phone_keyboard():
@@ -203,9 +245,9 @@ async def handle_contact_or_phone(update: Update, context: ContextTypes.DEFAULT_
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if not _is_allowed(update):
-        await _deny(update)
-        return
+    user = update.effective_user
+    if user:
+        _sync_user_to_db_and_render(user)
     await update.effective_message.reply_text(
         "👋 *Smart Wallet botiga xush kelibsiz!*\n\n"
         "⚡ *Tezkor kiritish:*\n"
