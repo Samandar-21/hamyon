@@ -12,6 +12,7 @@ from wallet_analytics import (
     category_expenses,
     get_dashboard_metrics,
     monthly_summary,
+    period_data,
 )
 from wallet_db import (
     add_audit_log,
@@ -373,7 +374,6 @@ def api_daily_digest(target_date: Optional[str] = None):
 def api_dashboard(period: Optional[str] = "30 kun"):
     conn = db()
     try:
-        from app import period_data
         raw_df = load_data(conn)
         filtered_df = period_data(raw_df, period)
         all_metrics = get_dashboard_metrics(raw_df)
@@ -505,7 +505,6 @@ async def api_import_excel(file: UploadFile = File(...)):
 def api_reports(period: str = "Oy"):
     conn = db()
     try:
-        from app import period_data
         raw_df = load_data(conn)
         
         # Period mapping

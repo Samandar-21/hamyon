@@ -1,4 +1,25 @@
 import pandas as pd
+from datetime import date, timedelta
+
+
+def period_range(period):
+    today = date.today()
+    if period == "Bugun":
+        return today, today
+    if period == "7 kun":
+        return today - timedelta(days=6), today
+    if period == "30 kun":
+        return today - timedelta(days=29), today
+    return None, None
+
+
+def period_data(df, period):
+    if df.empty or "tx_date" not in df.columns:
+        return df
+    start, end = period_range(period)
+    if start is None:
+        return df
+    return df[(df["tx_date"] >= start.isoformat()) & (df["tx_date"] <= end.isoformat())]
 
 
 def safe_float(value):
