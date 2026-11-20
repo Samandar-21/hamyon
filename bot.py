@@ -724,6 +724,7 @@ def main() -> None:
             ],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
+        per_message=False,
     )
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.CONTACT, handle_contact_or_phone))
